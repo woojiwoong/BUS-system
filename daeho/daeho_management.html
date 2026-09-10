@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 
-    <!-- 애플 기기(아이폰/아이패드) 홈 화면 추가 시 적용되는 아이콘 -->
-<link rel="apple-touch-icon" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6638.png">
+   <!-- 애플 기기(아이폰/아이패드) 홈 화면 추가 시 적용되는 아이콘 -->
+   <link rel="apple-touch-icon" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6636.png">
 
-<!-- 일반 브라우저 파비콘 (선택 사항) -->
-<link rel="icon" type="image/png" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6638.png">
+  <!-- 일반 브라우저 파비콘 (선택 사항) -->
+   <link rel="icon" type="image/png" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6636.png">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -461,6 +461,24 @@
   .driver-work-xaxis-title{left:52px !important;text-align:left !important;}
 }
 </style>
+
+<style id="source-protection-style">
+html, body { user-select:none !important; -webkit-user-select:none !important; -moz-user-select:none !important; }
+input, textarea, select, [contenteditable="true"] { user-select:text !important; -webkit-user-select:text !important; }
+img { -webkit-user-drag:none !important; user-drag:none !important; }
+</style>
+<script id="source-protection-script">
+(function(){
+  document.addEventListener('contextmenu',e=>e.preventDefault(),true);
+  document.addEventListener('copy',e=>e.preventDefault(),true);
+  document.addEventListener('cut',e=>e.preventDefault(),true);
+  document.addEventListener('dragstart',e=>e.preventDefault(),true);
+  document.addEventListener('keydown',function(e){
+    const k=e.key.toLowerCase(), c=e.ctrlKey||e.metaKey;
+    if(e.key==='F12' || (c && ['c','x','a','u','s'].includes(k)) || (c&&e.shiftKey&&['i','j','c'].includes(k)) || (e.metaKey&&e.altKey&&['i','j','c'].includes(k))){ e.preventDefault(); e.stopPropagation(); return false; }
+  },true);
+})();
+</script>
 </head>
 <body class="min-h-screen flex flex-col">
 
