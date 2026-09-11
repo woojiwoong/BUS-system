@@ -3,10 +3,10 @@
 <head>
 
    <!-- 애플 기기(아이폰/아이패드) 홈 화면 추가 시 적용되는 아이콘 -->
-   <link rel="apple-touch-icon" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6638.png">
+   <link rel="apple-touch-icon" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6636.png">
 
   <!-- 일반 브라우저 파비콘 (선택 사항) -->
-   <link rel="icon" type="image/png" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6638.png">
+   <link rel="icon" type="image/png" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6636.png">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -508,14 +508,22 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 </div>
 
                 <div class="flex items-center space-x-2 sm:space-x-2.5 flex-nowrap flex-shrink-0 ml-auto">
-                    <!-- 매월 TXT 불러오기 버튼 -->
+                    <!-- TXT불러오기 버튼 -->
                     <button type="button" onclick="openFileGuideModal('textUpload')" class="cursor-pointer bg-brand-700 hover:bg-brand-600 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-sm border border-brand-500/40 whitespace-nowrap flex-shrink-0">
                         <i data-lucide="file-up" class="w-4 h-4 text-gold-400"></i>
-                        <span>매월 TXT 불러오기</span>
+                        <span>TXT불러오기</span>
                     </button>
                     <!-- 실제 숨겨진 파일 input -->
                     <input type="file" id="txtFileInput" accept=".txt" class="hidden" onchange="handleFileUpload(event)">
 
+                    <button type="button" onclick="exportCurrentDataToTxt()" class="no-print cursor-pointer bg-teal-700 hover:bg-teal-600 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-sm whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>TXT저장</span>
+                    </button>
+                    <button type="button" onclick="openTxtDeleteWindow()" class="no-print cursor-pointer bg-red-600 hover:bg-red-500 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-sm whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>TXT삭제</span>
+                    </button>
                     <button onclick="exportToImage()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-sm whitespace-nowrap flex-shrink-0">
                         <i data-lucide="image" class="w-4 h-4"></i>
                         <span>이미지 저장</span>
@@ -648,6 +656,10 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     </div>
                 </div>
 
+                <div class="mb-3 text-center">
+                    <span class="text-xs sm:text-sm font-extrabold text-red-600 whitespace-nowrap">⚠️ 배차가 변경되면 꼭 위의 TXT저장을 누르세요</span>
+                </div>
+
                 <div class="mb-3 text-center flex flex-col items-center gap-1">
                     <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block">
                         ※ [기사명 선택 시 자유롭게 변경 가능합니다] ※
@@ -691,17 +703,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                         <div id="weeklyMonthTitle" class="text-xs sm:text-sm font-bold text-brand-700 text-center mt-1">2026년 9월</div>
                     </div>
                     <div class="flex flex-col items-center gap-2 flex-shrink-0">
-                        <span class="text-xs sm:text-sm font-extrabold text-red-600 whitespace-nowrap">⚠️ 기사 배차가 변경되면 꼭 <span style="font-size:calc(1em + 2px); text-decoration:underline; text-underline-offset:2px;">저장</span>하세요</span>
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="exportCurrentDataToTxt()" class="no-print cursor-pointer bg-teal-700 hover:bg-teal-600 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-sm whitespace-nowrap flex-shrink-0">
-                                <i data-lucide="file-text" class="w-4 h-4"></i>
-                                <span>TXT파일로 저장</span>
-                            </button>
-                            <button type="button" onclick="openTxtDeleteWindow()" class="no-print cursor-pointer bg-red-600 hover:bg-red-500 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-sm whitespace-nowrap flex-shrink-0">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                <span>TXT파일 삭제</span>
-                            </button>
-                        </div>
+                        <span class="text-xs sm:text-sm font-extrabold text-red-600 whitespace-nowrap">⚠️ 배차가 변경되면 꼭 위의 TXT저장을 누르세요</span>
                     </div>
                 </div>
                 <div class="mb-3 text-center flex flex-col items-center gap-1">
@@ -731,6 +733,9 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                         </span>
                     </div>
                 </div>
+                <div class="mb-3 text-center">
+                    <span class="text-xs sm:text-sm font-extrabold text-red-600 whitespace-nowrap">⚠️ 배차가 변경되면 꼭 위의 TXT저장을 누르세요</span>
+                </div>
                 <div class="mb-4 text-center flex flex-col items-center gap-1">
                     <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block">
                         ※ [기사명 선택 시 자유롭게 변경 가능합니다] ※
@@ -753,6 +758,9 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                         <div id="matrixMonthTitle" class="text-xs sm:text-sm font-bold text-brand-700 text-center mt-1">2026년 9월</div>
                     </div>
                 </div>
+                    <div class="mb-3 text-center">
+                        <span class="text-xs sm:text-sm font-extrabold text-red-600 whitespace-nowrap">⚠️ 배차가 변경되면 꼭 위의 TXT저장을 누르세요</span>
+                    </div>
                 <div class="mb-3 text-center flex flex-col items-center gap-1">
                     <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block">
                         ※ [기사명 선택 시 자유롭게 변경 가능합니다] ※
@@ -926,9 +934,12 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             <p class="text-xs text-slate-600 leading-relaxed mb-4 text-center bg-slate-50 p-3 rounded-xl border border-slate-200 font-medium">
                 대호교통 배차 및 휴무 관리 시스템에 오신 것을 환영합니다.<br>하단의 폴더 안내에 따라 TXT 파일을 선택하여 데이터를 불러오세요.
             </p>
-            <button onclick="proceedFromWelcomeModal()" class="w-full py-2.5 bg-brand-700 hover:bg-brand-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5">
+            <div class="flex gap-2">
+                <button onclick="shutdownSystem()" class="flex-1 py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all">시스템 종료</button>
+                <button onclick="proceedFromWelcomeModal()" class="flex-1 py-2.5 bg-brand-700 hover:bg-brand-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5">
                 <i data-lucide="folder-open" class="w-4 h-4"></i> 파일 선택하기
             </button>
+            </div>
         </div>
     </div>
 
@@ -1075,13 +1086,24 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 dailyPicker.addEventListener('blur', applyDailyDate);
             }
 
-            switchTab('daily');
+            switchTab('weekly');
             
             // 앱 실행 시 환영 모달 띄우기
             document.getElementById('welcomeModal').classList.remove('hidden');
         });
 
+        function shutdownSystem() {
+            document.querySelectorAll('.fixed').forEach(el => el.classList.add('hidden'));
+            try { window.close(); } catch (e) {}
+            setTimeout(() => {
+                if (!document.hidden) {
+                    document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;background:#f8fafc;color:#334155;font-size:20px;font-weight:700;">시스템이 종료되었습니다.</div>';
+                }
+            }, 150);
+        }
+
         function proceedFromWelcomeModal() {
+            fileSelectionSource = 'welcome';
             document.getElementById('welcomeModal').classList.add('hidden');
             document.getElementById('txtFileInput').click();
         }
@@ -1114,14 +1136,56 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
         // 안드로이드 / PC / iOS 모두 일반 파일 선택기를 사용합니다.
         // 저장·불러오기 기준 폴더는 다운로드(Downloads) 폴더입니다.
         async function proceedToOpenFilePicker() {
+            fileSelectionSource = 'textUpload';
             closeFileGuideModal();
             document.getElementById('txtFileInput').click();
+        }
+
+        let fileSelectionSource = 'welcome';
+
+        function validateTxtStructure(text, fileName = '') {
+            if (typeof text !== 'string' || !text.trim()) return false;
+            if (fileName && !/\.txt$/i.test(fileName)) return false;
+            const normalized = text.replace(/\r/g, '');
+            if (!/\[15번\]/.test(normalized)) return false;
+            if (!/\[19번\]/.test(normalized)) return false;
+            if (!/\[(?:스페어|스페어기사)\]/.test(normalized)) return false;
+            if (!/(?:직원\s*일자별\s*휴일자\s*명단|휴일자\s*명단|휴무자)/.test(normalized)) return false;
+            const vehicleRows = normalized.split('\n').filter(line => /^\s*[^\[\]\n]+호\s*:\s*[^,\n]+\s*,\s*[^\n]+\s*$/.test(line));
+            if (vehicleRows.length < 2) return false;
+            return true;
+        }
+
+        function showFileValidationError() {
+            const input = document.getElementById('txtFileInput');
+            if (input) input.value = '';
+            const old = document.getElementById('fileValidationErrorOverlay');
+            if (old) old.remove();
+            const overlay = document.createElement('div');
+            overlay.id = 'fileValidationErrorOverlay';
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.72);display:flex;align-items:center;justify-content:center;padding:20px;';
+            overlay.innerHTML = '<div style="background:#fff;border-radius:18px;padding:26px 30px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25);min-width:240px"><div style="font-size:21px;font-weight:800;color:#dc2626">파일 검증 오류<br><span style="font-size:15px;font-weight:600;color:#475569">다시선택하세요</span></div></div>';
+            document.body.appendChild(overlay);
+            setTimeout(() => {
+                overlay.remove();
+                if (fileSelectionSource === 'textUpload') {
+                    openFileGuideModal('textUpload');
+                } else {
+                    const welcome = document.getElementById('welcomeModal');
+                    if (welcome) welcome.classList.remove('hidden');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            }, 3000);
         }
 
         function processTxtFile(file) {
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
+                if (!validateTxtStructure(e.target.result, file.name)) {
+                    showFileValidationError();
+                    return;
+                }
                 parseTxtData(e.target.result, file.name);
                 // TXT 안에 저장된 수동 변경사항을 parseTxtData()에서 그대로 복원합니다.
                 syncDatePickerToCurrentMonth();
@@ -2757,7 +2821,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
         /**
          * 현재 화면의 노선/차량/스페어/휴무 데이터를
          * 불러오기와 동일한 TXT 형식으로 저장합니다.
-         * (월간 배차 현황 주별통합 탭의 「TXT파일로 저장」 버튼)
+         * (월간 배차 현황 주별통합 탭의 「TXT저장」 버튼)
          */
         async function exportCurrentDataToTxt() {
             try {
