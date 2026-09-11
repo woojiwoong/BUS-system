@@ -1334,6 +1334,78 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             renderInfoView();
             lucide.createIcons();
             applySpareDriverGlobalStyle();
+            applyScreenSundayHolidayDates();
+        }
+
+        // 화면의 모든 월간 날짜 표시에도 일요일/공휴일 빨간색을 적용합니다.
+        // 이미지 저장용 스타일과 별개로 실제 각 탭 화면에만 적용됩니다.
+        function applyScreenSundayHolidayDates() {
+            const year = Number(currentYear);
+            const month = Number(currentMonth);
+            const shouldRed = (day) => {
+                const d = Number(day);
+                if (!d || d < 1 || d > 31) return false;
+                return new Date(year, month - 1, d).getDay() === 0 || isKoreanPublicHoliday(year, month, d);
+            };
+            const mark = (el, day) => {
+                if (!el || !shouldRed(day)) return;
+                el.style.color = '#dc2626';
+                el.style.fontWeight = '800';
+                el.querySelectorAll('*').forEach(child => {
+                    child.style.color = '#dc2626';
+                });
+            };
+            const extractDay = (text) => {
+                const t = String(text || '').trim();
+                let m = t.match(/^(?:\d{1,2}\.)\s*(\d{1,2})/);
+                if (m) return Number(m[1]);
+                m = t.match(/^(\d{1,2})월\s*(\d{1,2})일/);
+                if (m) return Number(m[2]);
+                m = t.match(/^(\d{1,2})\.\s*(\d{1,2})\(/);
+                if (m) return Number(m[2]);
+                return null;
+            };
+
+            // 월간 배차 현황(매트릭스)
+            document.querySelectorAll('#monthlyTableHeader th').forEach(th => {
+                const text = th.textContent || '';
+                const m = text.match(/(\d{1,2})\.\s*(\d{1,2})/);
+                if (m) mark(th, Number(m[2]));
+            });
+
+            // 월간 휴무 현황
+            document.querySelectorAll('#monthlyOffTableHeader th').forEach(th => {
+                const text = th.textContent || '';
+                const m = text.match(/(\d{1,2})\.(\d{1,2})/);
+                if (m) mark(th, Number(m[2]));
+            });
+
+            // 기사별 근무 통계
+            document.querySelectorAll('#dailyShiftStatsHeader th').forEach(th => {
+                const text = th.textContent || '';
+                const m = text.match(/(\d{1,2})\.(\d{1,2})/);
+                if (m) mark(th, Number(m[2]));
+            });
+
+            // 월간 배차 현황(주별 통합) - 날짜가 들어간 상단 헤더
+            document.querySelectorAll('#allWeeklyTablesContainer th').forEach(th => {
+                const text = th.textContent || '';
+                const m = text.match(/(\d{1,2})월\s*(\d{1,2})일/);
+                if (m) mark(th, Number(m[2]));
+            });
+
+            // 월간 배차 현황(일일배차) - 각 날짜 카드의 날짜 배지
+            document.querySelectorAll('#dailyListContainer span').forEach(span => {
+                const text = span.textContent || '';
+                const m = text.match(/^(\d{1,2})월\s*(\d{1,2})일\s*\(([^)]+)\)/);
+                if (m) mark(span, Number(m[2]));
+            });
+
+            // 월간 휴무 대장 달력
+            document.querySelectorAll('#calendarGrid > div > div:first-child span:first-child').forEach(span => {
+                const m = (span.textContent || '').trim().match(/^(\d{1,2})\.(\d{1,2})$/);
+                if (m) mark(span, Number(m[2]));
+            });
         }
 
         function handleFileUpload(event) {
@@ -2047,6 +2119,24 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     }
                     tbodyHtml += `</tr>`;
                 });
+
+                // 노선·차량 목록 바로 아래에 날짜별 휴무자를 표시합니다.
+                tbodyHtml += `<tr class="bg-emerald-50/60 border-t-2 border-emerald-200">
+                    <td style="width: ${colWidthLabel}px; min-width: ${colWidthLabel}px; left: 0;" class="px-1 py-2 text-center bg-emerald-100 border-r border-emerald-200 align-middle sticky z-10 font-extrabold text-emerald-800 shadow-xs">
+                        휴무자
+                    </td>`;
+                for (let d = weekInfo.start; d <= weekInfo.end; d++) {
+                    const dateKey = `${String(currentYear).substring(2)}-${currentMonth < 10 ? '0'+currentMonth : currentMonth}-${d < 10 ? '0'+d : d}`;
+                    const dayData = getDailyAssignment(dateKey);
+                    const offNames = (dayData.offList || [])
+                        .map(n => String(n || '').replace('(S)','').trim())
+                        .filter(Boolean);
+                    const offText = offNames.length ? offNames.join(', ') : '-';
+                    tbodyHtml += `<td colspan="2" style="min-width: ${dayColWidth * 2}px;" class="px-1.5 py-2 text-center bg-emerald-50 text-emerald-800 font-bold text-[11px] border-r border-emerald-200 align-middle whitespace-normal">
+                        ${offText}
+                    </td>`;
+                }
+                tbodyHtml += `</tr>`;
 
                 allHtml += `
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs mb-4">
@@ -3094,6 +3184,85 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             downloadFile(blob, `대호교통_전체배차및휴무통계_${currentYear}년_${currentMonth}월.xlsx`);
         }
 
+        // 이미지 저장용 대한민국 공휴일 판별 (2026년 월력요항 기준)
+        function isKoreanPublicHoliday(year, month, day) {
+            const holidays2026 = new Set([
+                '2026-01-01',
+                '2026-02-16','2026-02-17','2026-02-18',
+                '2026-03-01','2026-03-02',
+                '2026-05-05','2026-05-24','2026-05-25',
+                '2026-06-03','2026-06-06',
+                '2026-08-15','2026-08-17',
+                '2026-09-24','2026-09-25','2026-09-26',
+                '2026-10-03','2026-10-05','2026-10-09',
+                '2026-12-25'
+            ]);
+            const key = `${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            return holidays2026.has(key);
+        }
+
+        // 이미지 전체에 공통 적용: 우측 상단 저장일 + 공휴일 날짜 빨간색
+        function applyImageCommonDecorations(capture) {
+            if (!capture) return;
+
+            const savedAt = document.createElement('div');
+            const now = new Date();
+            const pad2 = n => String(n).padStart(2, '0');
+            savedAt.textContent = `이미지 저장일: ${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+            savedAt.style.fontSize = '11px';
+            savedAt.style.fontWeight = '600';
+            savedAt.style.color = '#64748b';
+            savedAt.style.textAlign = 'right';
+            savedAt.style.whiteSpace = 'nowrap';
+            savedAt.style.margin = '0 0 4px';
+            savedAt.style.width = '100%';
+            savedAt.style.boxSizing = 'border-box';
+            capture.insertBefore(savedAt, capture.firstChild);
+
+            const month = Number(currentMonth);
+            const year = Number(currentYear);
+            const markHoliday = (el, day) => {
+                const date = new Date(year, month - 1, day);
+                const isSunday = date.getDay() === 0;
+                if (isKoreanPublicHoliday(year, month, day) || isSunday) {
+                    el.style.color = '#dc2626';
+                    el.style.fontWeight = '800';
+                    el.querySelectorAll('*').forEach(child => {
+                        // 공휴일/일요일의 날짜 표시를 빨간색으로 표시하되, 배차 데이터 색상은 건드리지 않습니다.
+                        child.style.color = '#dc2626';
+                    });
+                }
+            };
+
+            // 월간 표 / 월간 휴무 현황 / 기사별 근무통계 날짜 헤더
+            capture.querySelectorAll('#monthlyTableHeader th, #monthlyOffTableHeader th, #dailyShiftStatsHeader th').forEach(th => {
+                const text = (th.textContent || '').trim();
+                let m = text.match(/^(\d{1,2})\s*[.]\s*(\d{1,2})/);
+                if (!m) m = text.match(/^(\d{1,2})월\s*(\d{1,2})일/);
+                if (m) markHoliday(th, Number(m[2]));
+            });
+
+            // 휴무대장 달력 날짜
+            capture.querySelectorAll('#calendarGrid > div > div:first-child span:first-child').forEach(span => {
+                const day = parseInt((span.textContent || '').trim(), 10);
+                if (day >= 1 && day <= 31) markHoliday(span, day);
+            });
+
+            // 일반 탭의 날짜 표시 요소
+            capture.querySelectorAll('.date-cell').forEach(el => {
+                const text = (el.textContent || '').trim();
+                let m = text.match(/^(\d{1,2})\s*[.]\s*(\d{1,2})/);
+                if (!m) m = text.match(/^(\d{1,2})월\s*(\d{1,2})일/);
+                if (m) markHoliday(el, Number(m[2]));
+            });
+
+            // 주별통합 이미지의 날짜 셀
+            capture.querySelectorAll('[data-image-date]').forEach(el => {
+                const day = Number(el.getAttribute('data-image-date'));
+                if (day) markHoliday(el, day);
+            });
+        }
+
         async function exportToImage() {
             const active = document.querySelector('.tab-content:not(.hidden)');
             if (!active) {
@@ -3308,7 +3477,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
 
                         const offNames = (dayData.offList || []).map(name => String(name || '').replace('(S)','').trim()).filter(Boolean);
                         const offText = offNames.length ? offNames.join(', ') : '-';
-                        let html = `<div style="padding:7px 8px 4px;background:#f1f5f9;border-bottom:1px solid #cbd5e1;font-weight:900;font-size:17px;">${currentMonth}월 ${d}일 <span style="font-size:14px;color:${dow===0?'#dc2626':dow===6?'#2563eb':'#475569'};">(${['일','월','화','수','목','금','토'][dow]})</span></div>`;
+                        let html = `<div data-image-date="${d}" style="padding:7px 8px 4px;background:#f1f5f9;border-bottom:1px solid #cbd5e1;font-weight:900;font-size:17px;">${currentMonth}월 ${d}일 <span style="font-size:14px;color:${dow===0?'#dc2626':dow===6?'#2563eb':'#475569'};">(${['일','월','화','수','목','금','토'][dow]})</span></div>`;
                         html += `<div style="padding:3px 7px 5px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;font-size:12px;line-height:1.35;text-align:left;"><span style="font-weight:900;color:#15803d;">휴무:</span> <span style="font-weight:700;color:#16a34a;">${esc(offText)}</span></div>`;
                         html += `<div style="padding:5px 6px 2px;">`;
                         allBuses.forEach(bus => {
@@ -3331,6 +3500,101 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     const legend = document.createElement('div');
                     legend.innerHTML = '<div style="margin-top:12px;text-align:center;font-size:14px;font-weight:700;color:#475569;">오전 / 오후 · <span style="color:#2563eb;text-decoration:underline;">파란 밑줄 = 스페어 대체기사</span></div>';
                     imageTarget.appendChild(legend);
+                } else if (active.id === 'view-drivers') {
+                    // 기사별 근무통계는 화면의 스크롤/overflow 구조를 그대로 복제하지 않습니다.
+                    // 특히 모바일에서 카드의 아래쪽(tbody 행)이 잘리는 현상을 막기 위해
+                    // 제목 + 통계표만 별도의 캡처용 영역으로 다시 구성합니다.
+                    const sourceTable = active.querySelector('#dailyShiftStatsHeader')?.closest('table');
+                    if (!sourceTable) throw new Error('기사별 근무통계 표를 찾을 수 없습니다.');
+
+                    const sourceTableWidth = Math.ceil(Math.max(
+                        sourceTable.scrollWidth || 0,
+                        sourceTable.offsetWidth || 0,
+                        sourceTable.getBoundingClientRect().width || 0,
+                        1100
+                    ));
+
+                    const driverImage = document.createElement('div');
+                    driverImage.style.width = sourceTableWidth + 'px';
+                    driverImage.style.maxWidth = 'none';
+                    driverImage.style.height = 'auto';
+                    driverImage.style.maxHeight = 'none';
+                    driverImage.style.overflow = 'visible';
+                    driverImage.style.background = '#ffffff';
+                    driverImage.style.boxSizing = 'border-box';
+                    driverImage.style.padding = '20px';
+                    driverImage.style.fontFamily = 'Noto Sans KR, Arial, sans-serif';
+
+                    const driverTitle = document.createElement('div');
+                    driverTitle.style.fontSize = '24px';
+                    driverTitle.style.fontWeight = '900';
+                    driverTitle.style.textAlign = 'center';
+                    driverTitle.style.color = '#0f172a';
+                    driverTitle.style.padding = '0 0 14px';
+                    driverTitle.textContent = `${currentYear}년 ${currentMonth}월 기사별 근무 및 휴무 통계`;
+                    driverImage.appendChild(driverTitle);
+
+                    const driverSubTitle = document.createElement('div');
+                    driverSubTitle.style.fontSize = '13px';
+                    driverSubTitle.style.fontWeight = '700';
+                    driverSubTitle.style.textAlign = 'center';
+                    driverSubTitle.style.color = '#64748b';
+                    driverSubTitle.style.padding = '0 0 12px';
+                    driverSubTitle.textContent = '날짜별 오전 · 오후 · 근무 · 휴무';
+                    driverImage.appendChild(driverSubTitle);
+
+
+                    const driverTable = sourceTable.cloneNode(true);
+                    // 이미지에서는 '전/후' 글자 뒤의 색상 막대(둥근 배경)를 제거하고
+                    // 기존 글자 색상(전=주황, 후=파랑)은 그대로 유지합니다.
+                    driverTable.querySelectorAll('span').forEach(span => {
+                        const txt = (span.textContent || '').trim();
+                        if (txt === '전' || txt === '후') {
+                            span.style.background = 'transparent';
+                            span.style.backgroundColor = 'transparent';
+                            span.style.backgroundImage = 'none';
+                            span.style.boxShadow = 'none';
+                            span.style.border = 'none';
+                            span.style.borderRadius = '0';
+                            span.style.width = 'auto';
+                            span.style.minWidth = '0';
+                            span.style.height = 'auto';
+                            span.style.minHeight = '0';
+                            span.style.padding = '0';
+                        }
+                    });
+                    // 혹시 th/td 자체에 전/후용 배경이 남아 있는 경우도 제거합니다.
+                    driverTable.querySelectorAll('th, td').forEach(cell => {
+                        const txt = (cell.textContent || '').trim();
+                        if (txt === '오전' || txt === '오후' || txt === '전' || txt === '후') {
+                            cell.style.background = 'transparent';
+                            cell.style.backgroundColor = 'transparent';
+                            cell.style.backgroundImage = 'none';
+                            cell.style.boxShadow = 'none';
+                        }
+                    });
+                    driverTable.removeAttribute('id');
+                    driverTable.style.width = sourceTableWidth + 'px';
+                    driverTable.style.minWidth = sourceTableWidth + 'px';
+                    driverTable.style.maxWidth = 'none';
+                    driverTable.style.height = 'auto';
+                    driverTable.style.maxHeight = 'none';
+                    driverTable.style.overflow = 'visible';
+                    driverTable.style.tableLayout = 'auto';
+                    driverTable.style.borderCollapse = 'collapse';
+                    driverTable.querySelectorAll('*').forEach(el => {
+                        el.style.maxHeight = 'none';
+                        el.style.overflow = 'visible';
+                    });
+                    driverTable.querySelectorAll('tr').forEach(tr => {
+                        tr.style.height = '20px';
+                        tr.style.minHeight = '20px';
+                        tr.style.maxHeight = 'none';
+                    });
+                    driverImage.appendChild(driverTable);
+
+                    imageTarget = driverImage;
+                    targetWidth = sourceTableWidth + 40;
                 } else {
                     imageTarget = active;
                     targetWidth = Math.max(
@@ -3355,6 +3619,12 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 capture.style.boxSizing = 'border-box';
                 capture.style.position = 'static';
                 capture.style.display = 'block';
+                if (active.id === 'view-drivers') {
+                    capture.style.minHeight = '1px';
+                    capture.querySelectorAll('*').forEach(el => {
+                        el.style.maxHeight = 'none';
+                    });
+                }
 
                 capture.querySelectorAll('.overflow-x-auto, .overflow-auto').forEach(el => {
                     el.style.overflow = 'visible';
@@ -3362,6 +3632,8 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     el.style.maxWidth = 'none';
                     el.style.maxHeight = 'none';
                 });
+
+                applyImageCommonDecorations(capture);
 
                 captureWrap = document.createElement('div');
                 captureWrap.setAttribute('data-image-capture', 'true');
