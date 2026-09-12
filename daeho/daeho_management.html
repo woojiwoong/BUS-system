@@ -97,18 +97,14 @@
             color: #1e3a5f !important;
         }
         .blue-underline {
-            text-decoration: underline;
-            text-decoration-color: #2563eb;
-            text-decoration-thickness: 2px;
-            text-underline-offset: 4px;
+            text-decoration: none !important;
         }
-        /* 스페어 기사 이름은 화면 전체에서 항상 파란색 + 밑줄 */
+        /* 스페어 기사 이름은 화면 전체에서 항상 파란색, 밑줄 없음 */
         .spare-driver-global {
             color: #2563eb !important;
-            text-decoration: underline !important;
-            text-decoration-color: #2563eb !important;
-            text-decoration-thickness: 2px !important;
-            text-underline-offset: 3px !important;
+            text-decoration: none !important;
+            text-decoration-line: none !important;
+            text-underline-offset: 0 !important;
             font-weight: 700 !important;
         }
         @media print {
@@ -462,6 +458,41 @@
 }
 </style>
 
+<style id="weekly-offday-name-style">
+/* 주별 통합 하단 휴무자: 배차기사와 같은 글자크기, colspan 열 정렬, 넘치면 줄바꿈 */
+#view-weekly .weekly-offday-name {
+    color: #15803d !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    font-weight: 800 !important;
+    font-size: 0.75rem !important;
+    padding: 2px 2px !important;
+    height: auto !important;
+    min-height: 32px !important;
+    line-height: 1.25 !important;
+}
+#view-weekly .weekly-offday-name .weekly-offday-inner,
+#view-weekly .weekly-offday-name > div {
+    display: block !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: keep-all !important;
+    line-height: 1.25 !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+}
+/* 휴무자 행 전체: 고정 height 32px 해제 → 줄바꿈 시 높이 자동 */
+#view-weekly table tr:has(.weekly-offday-name) td {
+    height: auto !important;
+    min-height: 32px !important;
+    vertical-align: middle !important;
+}
+</style>
+
 <style id="source-protection-style">
 html, body { user-select:none !important; -webkit-user-select:none !important; -moz-user-select:none !important; }
 input, textarea, select, [contenteditable="true"] { user-select:text !important; -webkit-user-select:text !important; }
@@ -479,6 +510,28 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
   },true);
 })();
 </script>
+
+<style id="matrix-offrow-compact">
+/* 월간 배차 매트릭스 하단 휴무자: 열 정렬 유지(colspan), text-xs, 넘치면 줄바꿈 */
+#view-monthly #monthlyTableBody tr:last-child td {
+  padding: 2px 2px !important;
+  line-height: 1.25 !important;
+  vertical-align: middle !important;
+  height: auto !important;
+  font-size: 0.75rem !important;
+}
+#view-monthly #monthlyTableBody tr:last-child td:not(:first-child) > div {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: keep-all !important;
+  line-height: 1.25 !important;
+  font-size: 0.75rem !important;
+  text-align: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -547,17 +600,26 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
     <nav id="mainTabNav" class="bg-white border-b border-slate-200 shadow-sm no-print sticky z-40" style="top: var(--header-height, 0px);">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 scrollbar-none" id="tabContainer">
-                <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn px-3 py-2 rounded-lg font-extrabold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap bg-brand-50 text-brand-800 border border-brand-200">
-                    <i data-lucide="calendar" class="w-4 h-4"></i> 일자별 배차 현황
-                </button>
                 <button onclick="switchTab('weekly')" id="tab-weekly" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
                     <i data-lucide="calendar-range" class="w-4 h-4"></i> 월간 배차 현황 (주별 통합)
                 </button>
-<button onclick="switchTab('drivers')" id="tab-drivers" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
+                <button onclick="switchTab('drivers')" id="tab-drivers" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
                     <i data-lucide="users" class="w-4 h-4"></i> 기사별 근무 통계
                 </button>
-<button onclick="switchTab('dailyList')" id="tab-dailyList" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
+                <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn px-3 py-2 rounded-lg font-extrabold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap bg-brand-50 text-brand-800 border border-brand-200">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> 일자별 배차 현황
+                </button>
+                <button onclick="switchTab('monthly')" id="tab-monthly" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
+                    <i data-lucide="calendar-days" class="w-4 h-4"></i> 월간 배차 현황 (매트릭스)
+                </button>
+                <button onclick="switchTab('dailyList')" id="tab-dailyList" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
                     <i data-lucide="calendar-check" class="w-4 h-4"></i> 월간 배차 현황 (일일배차)
+                </button>
+                <button onclick="switchTab('monthlyOff')" id="tab-monthlyOff" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
+                    <i data-lucide="calendar-off" class="w-4 h-4"></i> 월간 휴무 현황표
+                </button>
+                <button onclick="switchTab('offdays')" id="tab-offdays" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
+                    <i data-lucide="clipboard-list" class="w-4 h-4"></i> 월간 휴무 대장
                 </button>
                 <button onclick="switchTab('driverGraph')" id="tab-driverGraph" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
                     <i data-lucide="bar-chart-3" class="w-4 h-4"></i> 기사별 근무일수 그래프
@@ -655,9 +717,6 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block">
                         ※ [기사명 선택 시 자유롭게 변경 가능합니다] ※
                     </span>
-                    <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight">
-                        - 대체 투입 스페어 기사는 파란 밑줄로 표시됩니다 -
-                    </span>
                 </div>
 
                 <div class="w-full overflow-x-auto rounded-xl border border-slate-200 shadow-xs">
@@ -701,9 +760,6 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block">
                         ※ [기사명 선택 시 자유롭게 변경 가능합니다] ※
                     </span>
-                    <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight">
-                        - 대체 투입 스페어 기사는 밑줄로 표시됩니다 -
-                    </span>
                 </div>
                 <div id="allWeeklyTablesContainer" class="space-y-4"></div>
             </section>
@@ -731,9 +787,6 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block">
                         ※ [기사명 선택 시 자유롭게 변경 가능합니다] ※
                     </span>
-                    <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight">
-                        - 대체 투입 스페어 기사는 밑줄로 표시됩니다 -
-                    </span>
                 </div>
                 <div id="dailyListContainer" class="max-w-3xl mx-auto space-y-4"></div>
             </section>
@@ -755,9 +808,6 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 <div class="mb-3 text-center flex flex-col items-center gap-1">
                     <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block">
                         ※ [기사명 선택 시 자유롭게 변경 가능합니다] ※
-                    </span>
-                    <span class="text-xs sm:text-sm font-bold text-red-600 tracking-tight">
-                        - 대체 투입 스페어 기사는 밑줄로 표시됩니다 -
                     </span>
                 </div>
                 <div class="w-full overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
@@ -2120,23 +2170,26 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     tbodyHtml += `</tr>`;
                 });
 
-                // 노선·차량 목록 바로 아래에 날짜별 휴무자를 표시합니다.
-                tbodyHtml += `<tr class="bg-emerald-50/60 border-t-2 border-emerald-200">
-                    <td style="width: ${colWidthLabel}px; min-width: ${colWidthLabel}px; left: 0;" class="px-1 py-2 text-center bg-emerald-100 border-r border-emerald-200 align-middle sticky z-10 font-extrabold text-emerald-800 shadow-xs">
+                // 노선·차량 행의 제일 아래에 날짜별 휴무자를 표시합니다.
+                // 매트릭스와 동일 규칙: text-xs, 오전+오후 colspan 정렬, 넘치면 줄바꿈 (폭 강제 금지 → 열 정렬 유지)
+                let offRowHtml = `<tr class="border-b border-slate-300 bg-emerald-50/70">
+                    <td style="width: ${colWidthLabel}px; min-width: ${colWidthLabel}px; left: 0; padding:2px 4px !important; font-size:0.75rem !important;" class="text-xs text-center bg-emerald-100 border-r border-slate-300 align-middle sticky z-10 font-extrabold text-emerald-800 shadow-xs">
                         휴무자
                     </td>`;
                 for (let d = weekInfo.start; d <= weekInfo.end; d++) {
                     const dateKey = `${String(currentYear).substring(2)}-${currentMonth < 10 ? '0'+currentMonth : currentMonth}-${d < 10 ? '0'+d : d}`;
                     const dayData = getDailyAssignment(dateKey);
                     const offNames = (dayData.offList || [])
-                        .map(n => String(n || '').replace('(S)','').trim())
-                        .filter(Boolean);
+                        .map(name => String(name || '').replace('(S)', '').trim())
+                        .filter(Boolean)
+                        .filter((name, index, arr) => arr.indexOf(name) === index);
                     const offText = offNames.length ? offNames.join(', ') : '-';
-                    tbodyHtml += `<td colspan="2" style="min-width: ${dayColWidth * 2}px;" class="px-1.5 py-2 text-center bg-emerald-50 text-emerald-800 font-bold text-[11px] border-r border-emerald-200 align-middle whitespace-normal">
-                        ${offText}
-                    </td>`;
+                    // colspan=2 로 오전·오후 배차 td와 열을 정확히 맞춤 (width 강제 없음)
+                    offRowHtml += `<td colspan="2" style="min-width: ${dayColWidth * 2}px; padding:2px 2px !important; font-size:0.75rem !important; color:#15803d !important; vertical-align:middle; text-align:center;" class="weekly-offday-name text-xs align-middle border-r border-slate-300 font-bold">` +
+                        `<div class="weekly-offday-inner" style="white-space:normal; overflow-wrap:anywhere; word-break:keep-all; line-height:1.25; font-size:0.75rem; font-weight:700; text-align:center;" title="${offText}">${offText}</div></td>`;
                 }
-                tbodyHtml += `</tr>`;
+                offRowHtml += `</tr>`;
+                tbodyHtml += offRowHtml;
 
                 allHtml += `
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs mb-4">
@@ -2244,6 +2297,26 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 bodyHtml += rowHtml;
             });
 
+            // 월간 배차 현황(매트릭스) 하단에 날짜별 휴무자 표시
+            // - 글자크기=배차기사(text-xs)
+            // - colspan=2 로 오전+오후 열과 정렬 (폭 강제 없음)
+            // - 한 줄로 넣되 넘치면 줄바꿈으로 전부 표시
+            let offRowHtml = `<tr class="bg-green-50/70 border-t border-green-200 text-xs text-center">
+                <td class="text-xs font-extrabold sticky left-0 bg-green-50 z-10 text-green-700 whitespace-nowrap align-middle border-r border-green-200 text-center px-2 py-1" style="font-size:0.75rem !important;">휴무자</td>`;
+            for (let d = 1; d <= totalDays; d++) {
+                const dayStr = d < 10 ? `0${d}` : `${d}`;
+                const mStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
+                const yyStr = String(currentYear).substring(2);
+                const dateKey = `${yyStr}-${mStr}-${dayStr}`;
+                const offList = getDailyAssignment(dateKey).offList || [];
+                const offNames = offList.map(n => String(n).replace('(S)', '').trim()).filter(Boolean);
+                const offText = offNames.length ? offNames.join(', ') : '-';
+                offRowHtml += `<td colspan="2" style="padding:2px 2px !important; font-size:0.75rem !important; vertical-align:middle;" class="text-xs text-center font-bold text-green-700 bg-green-50/70 border-r border-green-200 align-middle">` +
+                    `<div style="white-space:normal; overflow-wrap:anywhere; word-break:keep-all; line-height:1.25; font-size:0.75rem; font-weight:700; text-align:center; width:100%;" title="${offText}">${offText}</div></td>`;
+            }
+            offRowHtml += `</tr>`;
+            bodyHtml += offRowHtml;
+
             tableBodyEl.innerHTML = bodyHtml;
         }
 
@@ -2317,7 +2390,9 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 const dateKey = `${String(currentYear).substring(2)}-${currentMonth < 10 ? '0'+currentMonth : currentMonth}-${d < 10 ? '0'+d : d}`;
                 const offList = getDailyAssignment(dateKey).offList.map(n => n.replace('(S)','').trim()).filter(Boolean);
                 const dow = new Date(currentYear, currentMonth - 1, d).getDay();
-                const dateColor = dow === 0 ? 'text-rose-600' : (dow === 6 ? 'text-blue-600' : 'text-slate-900');
+                // 월간 휴무 대장 달력: 일요일과 대한민국 공휴일은 빨간색으로 표시
+                const isHoliday = isKoreanPublicHoliday(currentYear, currentMonth, d);
+                const dateColor = (dow === 0 || isHoliday) ? 'text-rose-600' : (dow === 6 ? 'text-blue-600' : 'text-slate-900');
 
                 let formattedListHtml = offList.map(n => {
                     const isS = appData.spares.includes(n);
