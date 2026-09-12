@@ -3489,49 +3489,53 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     }
 
                 } else if (active.id === 'view-weekly') {
-                    // 월간 배차현황(주별통합)은 화면의 가로형 테이블을 그대로 캡처하지 않고
-                    // 날짜별 7열 달력으로 재구성하여 이미지로 저장합니다.
+                    // 월간 배차현황(주별통합) → 고급 달력형 이미지 (셀 중앙정렬)
                     const totalDays = getDaysInMonth(currentYear, currentMonth);
-                    targetWidth = 1500;
+                    targetWidth = 1680;
                     imageTarget = document.createElement('div');
                     imageTarget.style.width = targetWidth + 'px';
-                    imageTarget.style.background = '#ffffff';
+                    imageTarget.style.background = 'linear-gradient(180deg,#f8fafc 0%,#ffffff 120px)';
                     imageTarget.style.boxSizing = 'border-box';
-                    imageTarget.style.padding = '18px';
-                    imageTarget.style.fontFamily = 'Arial, sans-serif';
+                    imageTarget.style.padding = '28px 24px 22px';
+                    imageTarget.style.fontFamily = "'Noto Sans KR', Arial, sans-serif";
 
                     const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+                    const isHol = (y, m, d) => (typeof isKoreanPublicHoliday === 'function' && isKoreanPublicHoliday(y, m, d));
+
                     const title = document.createElement('div');
-                    title.innerHTML = `<div style="font-size:34px;font-weight:900;text-align:center;color:#0f172a;margin-bottom:6px;">${currentYear}년 ${currentMonth}월 월간 배차현황</div>
-                                       <div style="font-size:18px;font-weight:700;text-align:center;color:#64748b;margin-bottom:18px;">주별통합 · 날짜별 달력형식</div>`;
+                    title.innerHTML = `
+                        <div style="text-align:center;margin-bottom:6px;">
+                            <div style="display:inline-block;padding:6px 16px;border-radius:999px;background:linear-gradient(135deg,#1e3a5f,#2758a0);color:#fbbf24;font-size:12px;font-weight:800;letter-spacing:0.06em;">DAEHO · SCHEDULE</div>
+                        </div>
+                        <div style="font-size:36px;font-weight:900;text-align:center;color:#0f172a;letter-spacing:-0.03em;line-height:1.2;">${currentYear}년 ${currentMonth}월 월간 배차현황</div>
+                        <div style="font-size:16px;font-weight:700;text-align:center;color:#64748b;margin:8px 0 20px;">주별통합 · 날짜별 달력</div>`;
                     imageTarget.appendChild(title);
 
                     const grid = document.createElement('div');
                     grid.style.display = 'grid';
                     grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-                    grid.style.gap = '7px';
+                    grid.style.gap = '10px';
+                    grid.style.padding = '14px';
+                    grid.style.background = 'linear-gradient(135deg,#eef2f7,#e2e8f0)';
+                    grid.style.border = '1px solid #cbd5e1';
+                    grid.style.borderRadius = '18px';
+                    grid.style.boxSizing = 'border-box';
 
-                    // 요일 헤더
-                    ['일','월','화','수','목','금','토'].forEach((dow, i) => {
+                    // 요일 헤더 (고급)
+                    const dowLabels = ['일','월','화','수','목','금','토'];
+                    const dowColors = ['#dc2626','#0f172a','#0f172a','#0f172a','#0f172a','#0f172a','#2563eb'];
+                    const dowBgs = ['#fef2f2','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#eff6ff'];
+                    dowLabels.forEach((dow, i) => {
                         const h = document.createElement('div');
                         h.textContent = dow;
-                        h.style.textAlign = 'center';
-                        h.style.fontWeight = '900';
-                        h.style.fontSize = '18px';
-                        h.style.padding = '10px 0';
-                        h.style.background = '#e2e8f0';
-                        h.style.border = '1px solid #cbd5e1';
-                        h.style.borderRadius = '8px';
+                        h.style.cssText = `text-align:center;font-weight:900;font-size:17px;padding:12px 0;background:${dowBgs[i]};color:${dowColors[i]};border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 1px 3px rgba(15,23,42,.06);letter-spacing:0.04em;`;
                         grid.appendChild(h);
                     });
 
                     const firstDow = new Date(currentYear, currentMonth - 1, 1).getDay();
                     for (let i = 0; i < firstDow; i++) {
                         const blank = document.createElement('div');
-                        blank.style.minHeight = '195px';
-                        blank.style.background = '#f8fafc';
-                        blank.style.border = '1px solid #e2e8f0';
-                        blank.style.borderRadius = '9px';
+                        blank.style.cssText = 'min-height:240px;background:rgba(248,250,252,.7);border:1px dashed #e2e8f0;border-radius:14px;';
                         grid.appendChild(blank);
                     }
 
@@ -3542,38 +3546,82 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                         const dateKey = `${String(currentYear).substring(2)}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const dayData = getDailyAssignment(dateKey);
                         const dow = new Date(currentYear, currentMonth - 1, d).getDay();
+                        const holiday = isHol(currentYear, currentMonth, d);
+                        const isSun = dow === 0;
+                        const isSat = dow === 6;
+                        const dateColor = (isSun || holiday) ? '#dc2626' : (isSat ? '#2563eb' : '#0f172a');
+                        const headBg = (isSun || holiday)
+                            ? 'linear-gradient(180deg,#fef2f2,#fee2e2)'
+                            : (isSat ? 'linear-gradient(180deg,#eff6ff,#dbeafe)' : 'linear-gradient(180deg,#f8fafc,#eef2f7)');
+                        const cellBorder = (isSun || holiday) ? '#fecaca' : (isSat ? '#bfdbfe' : '#cbd5e1');
+
                         const cell = document.createElement('div');
-                        cell.style.minHeight = '225px';
-                        cell.style.background = '#ffffff';
-                        cell.style.border = '1px solid #cbd5e1';
-                        cell.style.borderRadius = '9px';
-                        cell.style.overflow = 'hidden';
-                        cell.style.boxSizing = 'border-box';
+                        cell.style.cssText = `min-height:250px;background:#ffffff;border:1px solid ${cellBorder};border-radius:14px;overflow:hidden;box-sizing:border-box;box-shadow:0 4px 12px rgba(15,23,42,.07);display:flex;flex-direction:column;`;
 
                         const offNames = (dayData.offList || []).map(name => String(name || '').replace('(S)','').trim()).filter(Boolean);
                         const offText = offNames.length ? offNames.join(', ') : '-';
-                        let html = `<div data-image-date="${d}" style="padding:7px 8px 4px;background:#f1f5f9;border-bottom:1px solid #cbd5e1;font-weight:900;font-size:17px;">${currentMonth}월 ${d}일 <span style="font-size:14px;color:${dow===0?'#dc2626':dow===6?'#2563eb':'#475569'};">(${['일','월','화','수','목','금','토'][dow]})</span></div>`;
-                        html += `<div style="padding:3px 7px 5px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;font-size:12px;line-height:1.35;text-align:left;"><span style="font-weight:900;color:#15803d;">휴무:</span> <span style="font-weight:700;color:#16a34a;">${esc(offText)}</span></div>`;
-                        html += `<div style="padding:5px 6px 2px;">`;
-                        allBuses.forEach(bus => {
+
+                        // 날짜 헤더 (중앙정렬)
+                        let html = `<div data-image-date="${d}" style="padding:10px 8px 8px;background:${headBg};border-bottom:1px solid ${cellBorder};text-align:center;">
+                            <div style="font-weight:900;font-size:18px;color:${dateColor};letter-spacing:-0.02em;line-height:1.2;">${currentMonth}월 ${d}일</div>
+                            <div style="margin-top:3px;font-size:12px;font-weight:800;color:${dateColor};opacity:.9;">(${dowLabels[dow]})</div>
+                        </div>`;
+
+                        // 휴무 (중앙정렬)
+                        html += `<div style="padding:7px 8px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;text-align:center !important;">
+                            <div style="font-size:11px;font-weight:900;color:#15803d;letter-spacing:0.02em;margin-bottom:3px;text-align:center;">휴무</div>
+                            <div style="font-size:12px;font-weight:700;color:#16a34a;line-height:1.35;word-break:keep-all;text-align:center;">${esc(offText)}</div>
+                        </div>`;
+
+                        // 배차 표: 실제 table + td 중앙정렬 (html2canvas에서도 정확히 가운데)
+                        html += `<div style="padding:6px;flex:1;box-sizing:border-box;">
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;background:#ffffff;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:28%;text-align:center;vertical-align:middle;font-size:10px;font-weight:900;color:#334155;padding:7px 2px;border:1px solid #cbd5e1;background:#f8fafc;">노선</th>
+                                        <th style="width:36%;text-align:center;vertical-align:middle;font-size:10px;font-weight:900;color:#b45309;padding:7px 2px;border:1px solid #cbd5e1;background:#fffbeb;">오전</th>
+                                        <th style="width:36%;text-align:center;vertical-align:middle;font-size:10px;font-weight:900;color:#c2410c;padding:7px 2px;border:1px solid #cbd5e1;background:#fef2f2;">오후</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                        allBuses.forEach((bus, idx) => {
                             const b = (dayData.busAssignments || []).find(x => x.line === bus.line && x.busNo === bus.busNo);
                             const m = b ? String(b.morningAssigned || '-').replace('(S)','').trim() : '-';
                             const a = b ? String(b.afternoonAssigned || '-').replace('(S)','').trim() : '-';
                             const mSpare = b && appData.spares.some(x => x.replace('(S)','').trim() === m);
                             const aSpare = b && appData.spares.some(x => x.replace('(S)','').trim() === a);
-                            html += `<div style="display:grid;grid-template-columns:65px 1fr 1fr;gap:3px;align-items:center;font-size:12px;line-height:1.35;border-bottom:1px solid #f1f5f9;padding:2px 0;">` +
-                                     `<b style="text-align:center;color:#334155;">${esc(bus.line.replace('번',''))}-${esc(bus.busNo)}</b>` +
-                                     `<span style="text-align:center;font-weight:800;color:${m==='운행종료'?'#dc2626':(mSpare?'#2563eb':'#0f172a')};text-decoration:${mSpare && m!=='운행종료'?'underline':'none'};">${esc(m)}</span>` +
-                                     `<span style="text-align:center;font-weight:800;color:${a==='운행종료'?'#dc2626':(aSpare?'#2563eb':'#0f172a')};text-decoration:${aSpare && a!=='운행종료'?'underline':'none'};">${esc(a)}</span></div>`;
+                            const lineColor = bus.line.includes('15') ? '#dc2626' : '#2563eb';
+                            const mColor = m === '운행종료' ? '#dc2626' : (mSpare ? '#2563eb' : '#0f172a');
+                            const aColor = a === '운행종료' ? '#dc2626' : (aSpare ? '#2563eb' : '#0f172a');
+                            html += `<tr>
+                                <td style="text-align:center;vertical-align:middle;font-size:11px;font-weight:900;color:${lineColor};line-height:1.25;padding:6px 2px;border:1px solid #e2e8f0;background:#ffffff;">${esc(bus.line.replace('번',''))}·${esc(bus.busNo)}</td>
+                                <td style="text-align:center;vertical-align:middle;font-size:12px;font-weight:800;color:${mColor};line-height:1.25;padding:6px 2px;border:1px solid #e2e8f0;background:#ffffff;">${esc(m)}</td>
+                                <td style="text-align:center;vertical-align:middle;font-size:12px;font-weight:800;color:${aColor};line-height:1.25;padding:6px 2px;border:1px solid #e2e8f0;background:#ffffff;">${esc(a)}</td>
+                            </tr>`;
                         });
-                        html += `</div>`;
+                        html += `</tbody></table></div>`;
                         cell.innerHTML = html;
                         grid.appendChild(cell);
                     }
+
+                    // 월말 빈 칸 채우기 (7열 맞춤)
+                    const totalCells = firstDow + totalDays;
+                    const remain = (7 - (totalCells % 7)) % 7;
+                    for (let i = 0; i < remain; i++) {
+                        const blank = document.createElement('div');
+                        blank.style.cssText = 'min-height:240px;background:rgba(248,250,252,.7);border:1px dashed #e2e8f0;border-radius:14px;';
+                        grid.appendChild(blank);
+                    }
+
                     imageTarget.appendChild(grid);
 
                     const legend = document.createElement('div');
-                    legend.innerHTML = '<div style="margin-top:12px;text-align:center;font-size:14px;font-weight:700;color:#475569;">오전 / 오후 · <span style="color:#2563eb;text-decoration:underline;">파란 밑줄 = 스페어 대체기사</span></div>';
+                    legend.innerHTML = `<div style="margin-top:16px;text-align:center;font-size:13px;font-weight:700;color:#475569;line-height:1.6;">
+                        <span style="display:inline-block;margin:0 10px;">🟧 오전 · 🟥 오후</span>
+                        <span style="display:inline-block;margin:0 10px;color:#2563eb;">파란 글자 = 스페어 대체기사</span>
+                        <span style="display:inline-block;margin:0 10px;color:#dc2626;">빨강 날짜 = 일요일/공휴일</span>
+                    </div>`;
                     imageTarget.appendChild(legend);
                 } else if (active.id === 'view-drivers') {
                     // 기사별 근무통계는 화면의 스크롤/overflow 구조를 그대로 복제하지 않습니다.
