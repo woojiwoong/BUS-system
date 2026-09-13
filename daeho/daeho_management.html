@@ -532,8 +532,378 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
 }
 </style>
 
+
+<style id="monthly-off-list-style">
+/* 월 휴무자 명단 - 다른 탭의 배차 데이터와 완전히 분리된 입력 화면 */
+.monthly-off-list-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.monthly-off-list-table{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid #cbd5e1;border-radius:12px;overflow:hidden}
+.monthly-off-list-table th,.monthly-off-list-table td{border-right:1px solid #cbd5e1;border-bottom:1px solid #cbd5e1;padding:8px 7px;text-align:center;vertical-align:middle}
+.monthly-off-list-table th:last-child,.monthly-off-list-table td:last-child{border-right:0}
+.monthly-off-list-table tr:last-child td{border-bottom:0}
+.monthly-off-list-table thead th{background:#f1f5f9;color:#334155;font-weight:900;font-size:13px;white-space:nowrap}
+.monthly-off-list-table .route-cell{background:#f8fafc;font-weight:900;color:#0f172a;width:48px;white-space:nowrap}.monthly-off-list-table .route-cell.route15{color:#dc2626 !important}.monthly-off-list-table .route-cell.route19{color:#2563eb !important}
+.monthly-off-list-table .bus-cell{font-weight:900;color:#0f172a;width:52px;white-space:nowrap}
+.monthly-off-driver-select{width:100%;min-width:0;height:38px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#0f172a;font-size:13px;font-weight:800;padding:0 22px 0 5px;outline:none;box-sizing:border-box}
+.monthly-off-driver-select:focus{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.12)}
+.monthly-off-driver-select.spare-select{border-color:#86efac;background:#f0fdf4;color:#15803d !important}.monthly-off-driver-select option.spare-option{color:#15803d !important;font-weight:800}
+.monthly-off-note{font-size:11px;line-height:1.45;color:#64748b}
+.monthly-off-list-spare{display:flex;flex-wrap:nowrap;gap:6px;width:100%;overflow:hidden}
+.monthly-off-spare-input{flex:1 1 0;min-width:0;width:0;height:38px;border:1px solid #fbbf24;border-radius:8px;background:#fff;color:#0f172a;font-size:13px;font-weight:800;padding:0 8px;box-sizing:border-box;outline:none}
+.monthly-off-spare-input:focus{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.12)}
+.monthly-off-independent-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;font-size:11px;font-weight:900}
+@media(max-width:639px){
+  .monthly-off-list-table{min-width:0;width:100%;table-layout:fixed}
+  .monthly-off-list-table th,.monthly-off-list-table td{padding:5px 3px}
+  .monthly-off-list-table .route-cell{width:42px}
+  .monthly-off-list-table .bus-cell{width:48px}
+  .monthly-off-driver-select{min-width:0;width:100%;height:34px;font-size:11px;padding-left:3px;padding-right:18px}
+  .monthly-off-list-spare .monthly-off-spare-input{font-size:11px;padding:0 5px}
+}
+/* ===== 휴무일자·휴무기사 고급 카드 ===== */
+.monthly-off-day-card{
+  margin-top:1.5rem;
+  border:1px solid #c7d2e3;
+  border-radius:18px;
+  background:linear-gradient(180deg,#ffffff 0%,#f5f8fc 100%);
+  box-shadow:0 10px 28px rgba(15,23,42,.07);
+  overflow:visible;
+}
+.monthly-off-day-card-head{
+  padding:16px 18px 12px;
+  border-bottom:1px solid #e2e8f0;
+  background:linear-gradient(135deg,#1e3a5f 0%,#2758a0 55%,#3b82f6 100%);
+  border-radius:18px 18px 0 0;
+}
+.monthly-off-day-card-title{
+  display:flex;align-items:center;gap:10px;
+  color:#fff;font-size:16px;font-weight:900;letter-spacing:-0.02em;
+}
+.monthly-off-day-card-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:42px;height:24px;padding:0 8px;border-radius:999px;
+  background:rgba(251,191,36,.95);color:#78350f;font-size:11px;font-weight:900;
+  letter-spacing:0.04em;
+}
+.monthly-off-day-card-desc{
+  margin-top:6px;color:rgba(255,255,255,.82);font-size:12px;font-weight:600;line-height:1.45;
+}
+.monthly-off-day-controls{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;
+  padding:16px 16px 8px;box-sizing:border-box;
+}
+.monthly-off-day-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.monthly-off-day-field-date{flex:0 0 auto}
+.monthly-off-day-field-drivers{flex:1 1 260px;min-width:0}
+.monthly-off-day-drivers-row{
+  display:flex;align-items:center;gap:8px;width:100%;min-width:0;
+}
+.monthly-off-day-drivers-select{
+  position:relative;flex:0 1 180px;max-width:200px;min-width:120px;
+}
+.monthly-off-day-label{
+  font-size:12px;font-weight:800;color:#475569;letter-spacing:0.01em;
+}
+.monthly-off-day-label-lg{
+  font-size:18px !important;font-weight:900 !important;color:#0f172a !important;
+  letter-spacing:-0.03em;
+}
+.monthly-off-day-label-sub{font-size:11px;font-weight:700;color:#94a3b8}
+.monthly-off-day-date{
+  font-family:inherit;
+  min-width:200px;height:48px;padding:0 14px;
+  border:2px solid #93c5fd;border-radius:12px;
+  background:linear-gradient(180deg,#fff 0%,#eff6ff 100%);
+  color:#0f172a;font-size:18px;font-weight:900;letter-spacing:-0.02em;
+  box-shadow:0 2px 8px rgba(37,99,235,.08);
+}
+.monthly-off-day-date:focus{
+  outline:none;border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.18);
+}
+.monthly-off-day-date::-webkit-calendar-picker-indicator{
+  cursor:pointer;opacity:.75;transform:scale(1.15);
+}
+.monthly-off-multi-btn{
+  width:100%;height:48px;padding:0 14px;
+  border:1.5px solid #cbd5e1;border-radius:12px;background:#fff;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  text-align:left;font-size:14px;font-weight:800;color:#334155;
+  box-shadow:0 1px 3px rgba(15,23,42,.04);cursor:pointer;
+}
+.monthly-off-multi-btn:hover{border-color:#94a3b8}
+.monthly-off-multi-btn:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.14)}
+.monthly-off-multi-label-placeholder{color:#94a3b8;font-weight:700}
+.monthly-off-multi-caret{color:#94a3b8;font-size:11px;flex-shrink:0}
+.monthly-off-multi-panel{
+  position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;
+  background:#fff;border:1px solid #e2e8f0;border-radius:14px;
+  box-shadow:0 16px 40px rgba(15,23,42,.14);
+  max-height:240px;overflow-y:auto;padding:8px;
+}
+.monthly-off-multi-panel label{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
+  cursor:pointer;font-size:14px;font-weight:700;color:#0f172a;
+}
+.monthly-off-multi-panel label:hover{background:#f1f5f9}
+.monthly-off-multi-panel input[type=checkbox]{width:17px;height:17px;accent-color:#1d4ed8}
+.monthly-off-day-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+.monthly-off-day-btn-add{
+  height:48px;padding:0 20px;border:0;border-radius:12px;
+  background:linear-gradient(180deg,#3b82f6,#1d4ed8);color:#fff;
+  font-size:14px;font-weight:900;box-shadow:0 6px 14px rgba(29,78,216,.25);cursor:pointer;
+}
+.monthly-off-day-btn-add:hover{filter:brightness(1.05)}
+.monthly-off-day-btn-reset{
+  height:48px;padding:0 14px;border:1px solid #cbd5e1;border-radius:12px;
+  background:#fff;color:#475569;font-size:13px;font-weight:800;cursor:pointer;
+}
+.monthly-off-day-btn-reset:hover{background:#f8fafc}
+.monthly-off-day-table-wrap{
+  margin:8px 14px 14px;width:auto;overflow:auto;
+  border:1px solid #c7d2e3;border-radius:14px;background:#fff;
+  max-height:calc(5 * 48px + 48px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.monthly-off-day-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.monthly-off-day-table thead th{
+  position:sticky;top:0;z-index:1;
+  background:linear-gradient(180deg,#f8fafc,#eef2f7);
+  color:#1e293b;font-weight:900;font-size:14px;padding:12px 10px;text-align:center;
+  border-bottom:1px solid #cbd5e1;letter-spacing:-0.01em;
+}
+.monthly-off-day-table thead th.monthly-off-day-th-date{
+  font-size:17px;font-weight:900;color:#0f172a;width:32%;
+}
+.monthly-off-day-table thead th.monthly-off-day-th-del{width:76px;font-size:13px}
+.monthly-off-day-table tbody td{
+  padding:11px 10px;text-align:center;vertical-align:middle;
+  border-bottom:1px solid #e8eef5;font-size:14px;font-weight:700;color:#0f172a;
+  height:48px;box-sizing:border-box;
+}
+.monthly-off-day-table tbody tr:last-child td{border-bottom:0}
+.monthly-off-day-table tbody tr:hover td{background:#f8fafc}
+.monthly-off-day-table .off-day-date-cell{
+  color:#b91c1c;font-weight:900;font-size:17px;letter-spacing:-0.02em;white-space:nowrap;
+}
+.monthly-off-day-table .off-day-names-cell{
+  text-align:left;font-weight:700;font-size:14px;color:#334155;word-break:keep-all;
+}
+.monthly-off-day-table .off-day-del{
+  border:0;background:#fee2e2;color:#b91c1c;font-weight:800;font-size:12px;
+  padding:6px 11px;border-radius:9px;cursor:pointer;
+}
+.monthly-off-day-table .off-day-del:hover{background:#fecaca}
+.monthly-off-day-table .off-day-empty td{color:#94a3b8;font-weight:600;height:48px}
+@media(max-width:639px){
+  .monthly-off-day-controls{padding:14px 12px 6px;gap:12px}
+  .monthly-off-day-label-lg{font-size:16px !important}
+  .monthly-off-day-date{min-width:0;width:100%;font-size:16px;height:46px}
+  .monthly-off-day-drivers-select{flex:1 1 auto;max-width:none;min-width:0}
+  .monthly-off-multi-btn,.monthly-off-day-btn-add,.monthly-off-day-btn-reset{height:46px}
+  .monthly-off-day-btn-add{padding:0 14px}
+  .monthly-off-day-btn-reset{padding:0 10px}
+  .monthly-off-day-table-wrap{margin:6px 10px 12px}
+  .monthly-off-day-table thead th.monthly-off-day-th-date{font-size:15px}
+  .monthly-off-day-table .off-day-date-cell{font-size:15px}
+}
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col">
+
+
+<!-- ========== Firebase + 접근 제한 (최종 정리 버전) ========== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAy9KNZBUbVrQ_8GdtWBPlQSjEEyIj3EpU",
+    authDomain: "bus-manage-bb7cd.firebaseapp.com",
+    projectId: "bus-manage-bb7cd",
+    storageBucket: "bus-manage-bb7cd.firebasestorage.app",
+    messagingSenderId: "985333994037",
+    appId: "1:985333994037:web:2837611a21f88bd718577c",
+    measurementId: "G-FD3Q79H5EV"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const TOKEN_KEY = "daeho_access_token_v1";
+
+  async function initAccessControl() {
+    const token = localStorage.getItem(TOKEN_KEY);
+
+    if (token === "granted") {
+      hideGate();
+      showResetButton();
+    } else {
+      showGate();
+      hideResetButton();
+    }
+  }
+
+  function showGate() {
+    const gate = document.getElementById("access-gate");
+    if (gate) {
+      gate.style.display = "flex";
+      setTimeout(() => {
+        const input = document.getElementById("secretInput");
+        if (input) input.focus();
+      }, 150);
+    }
+  }
+
+  function hideGate() {
+    const gate = document.getElementById("access-gate");
+    if (gate) gate.style.display = "none";
+  }
+
+  function showResetButton() {
+    const btn = document.getElementById("resetAuthBtn");
+    if (btn) btn.style.display = "flex";
+  }
+
+  function hideResetButton() {
+    const btn = document.getElementById("resetAuthBtn");
+    if (btn) btn.style.display = "none";
+  }
+
+  // 비밀코드 확인
+  window.checkSecret = async function () {
+    const input = document.getElementById("secretInput");
+    const errorEl = document.getElementById("secretError");
+    const btn = document.getElementById("secretBtn");
+    const value = input.value.trim();
+
+    if (!value) {
+      errorEl.textContent = "비밀코드를 입력해주세요.";
+      errorEl.style.display = "block";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "확인 중...";
+    errorEl.style.display = "none";
+
+    try {
+      const docRef = doc(db, "config", "SECRET_CODE");
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const correctCode = docSnap.data().CODE;
+
+        if (value === correctCode) {
+          localStorage.setItem(TOKEN_KEY, "granted");
+          hideGate();
+          showResetButton();
+        } else {
+          errorEl.textContent = "비밀코드가 올바르지 않습니다.";
+          errorEl.style.display = "block";
+          input.value = "";
+          input.focus();
+        }
+      } else {
+        errorEl.textContent = "서버 설정 오류가 발생했습니다.";
+        errorEl.style.display = "block";
+      }
+    } catch (error) {
+      errorEl.textContent = "서버 연결에 실패했습니다.";
+      errorEl.style.display = "block";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "확인";
+    }
+  };
+
+  // 인증 초기화
+  window.resetAuth = function () {
+    if (confirm("인증을 초기화하시겠습니까?\n다시 비밀코드를 입력해야 합니다.")) {
+      localStorage.removeItem(TOKEN_KEY);
+      hideResetButton();
+      showGate();
+
+      const input = document.getElementById("secretInput");
+      const errorEl = document.getElementById("secretError");
+      if (input) input.value = "";
+      if (errorEl) errorEl.style.display = "none";
+    }
+  };
+
+  // 초기 실행
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAccessControl);
+  } else {
+    initAccessControl();
+  }
+</script>
+
+<!-- 인증 초기화 버튼 
+<button id="resetAuthBtn" onclick="resetAuth()" 
+  style="display: none; position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+         background: #64748b; color: white; border: none; border-radius: 50px;
+         padding: 12px 18px; font-size: 0.875rem; font-weight: 600;
+         box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;
+         font-family: 'Noto Sans KR', sans-serif; align-items: center; gap: 6px;"
+  onmouseover="this.style.background='#475569'"
+  onmouseout="this.style.background='#64748b'">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+    <polyline points="16 17 21 12 16 7"></polyline>
+    <line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+  인증 초기화
+</button>
+-->
+
+
+<!-- 접근 제한 화면 -->
+<div id="access-gate" style="display: none; position: fixed; inset: 0; background: linear-gradient(135deg, #f0f5fa 0%, #e1ebf5 100%); z-index: 99999; display: flex; align-items: center; justify-content: center; font-family: 'Noto Sans KR', sans-serif;">
+  <div style="background: white; width: 90%; max-width: 380px; border-radius: 16px; box-shadow: 0 20px 40px rgba(30, 60, 109, 0.12); overflow: hidden;">
+    
+    <div style="background: linear-gradient(135deg, #2758a0 0%, #1e3c6d 100%); padding: 28px 24px; text-align: center;">
+      <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.15); border-radius: 14px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h1 style="color: white; font-size: 1.25rem; font-weight: 700; margin: 0 0 4px 0;">대호교통</h1>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.875rem; margin: 0;">배차 및 휴무 관리 시스템</p>
+    </div>
+
+    <div style="padding: 28px 24px 24px;">
+      <p style="text-align: center; color: #64748b; font-size: 0.9rem; margin: 0 0 20px 0; line-height: 1.5;">
+        허가된 사용자만 접근할 수 있습니다.<br>
+        비밀코드를 입력해 주세요.
+      </p>
+
+      <input 
+        type="password" 
+        id="secretInput" 
+        placeholder="비밀코드 입력"
+        autocomplete="off"
+        style="width: 100%; padding: 14px 16px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 1rem; outline: none; box-sizing: border-box; font-family: inherit;"
+        onfocus="this.style.borderColor='#2758a0'"
+        onblur="this.style.borderColor='#cbd5e1'"
+        onkeydown="if(event.key==='Enter') checkSecret()"
+      >
+
+      <p id="secretError" style="color: #dc2626; font-size: 0.85rem; margin: 10px 0 0 0; text-align: center; display: none;"></p>
+
+      <button 
+        id="secretBtn"
+        onclick="checkSecret()"
+        style="width: 100%; margin-top: 18px; padding: 14px; background: #2758a0; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit;"
+      >
+        확인
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ========== 끝 ========== -->
+
 
     <!-- 상단 네비게이션 헤더 -->
     <header class="bg-brand-900 text-white shadow-lg sticky top-0 z-50 no-print py-3 border-b border-brand-800">
@@ -623,6 +993,9 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 </button>
                 <button onclick="switchTab('driverGraph')" id="tab-driverGraph" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
                     <i data-lucide="bar-chart-3" class="w-4 h-4"></i> 기사별 근무일수 그래프
+                </button>
+                <button onclick="switchTab('monthlyOffList')" id="tab-monthlyOffList" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
+                    <i data-lucide="list-checks" class="w-4 h-4"></i> 월 휴무자 명단
                 </button>
                 <button onclick="switchTab('info')" id="tab-info" class="tab-btn px-3 py-2 rounded-lg font-bold text-sm sm:text-base flex items-center gap-2 whitespace-nowrap text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-colors">
                     <i data-lucide="bus-front" class="w-4 h-4"></i> 노선/차량/스페어 정보
@@ -914,6 +1287,102 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 </div>
             </section>
 
+
+            <!-- 탭: 월 휴무자 명단 (배차 데이터와 완전 분리) -->
+            <section id="view-monthlyOffList" class="tab-content hidden">
+                <div class="mb-5 pb-3 border-b border-slate-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i data-lucide="list-checks" class="w-5 h-5 text-brand-600"></i> 월 휴무자 명단
+                            </h2>
+                            <div id="monthlyOffListMonthTitle" class="text-xs sm:text-sm font-bold text-brand-700 mt-1"></div>
+                        </div>
+                        <span class="monthly-off-independent-badge"><i data-lucide="unlink" class="w-3.5 h-3.5"></i>배차표와 별도 관리</span>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-3 sm:p-5">
+                    <div class="mb-3">
+                        <div class="text-sm font-bold text-slate-700">월 휴무자 명단 작성</div>
+                        <div class="monthly-off-note mt-1">차량별 정규기사를 콤보박스에서 선택합니다. 「월휴무자명단저장」을 누르기 전에는 변경값이 저장되지 않습니다.</div>
+                    </div>
+
+                    <div class="monthly-off-list-wrap">
+                        <table class="monthly-off-list-table">
+                            <thead>
+                                <tr>
+                                    <th>노선</th>
+                                    <th>차량</th>
+                                    <th>기사 1</th>
+                                    <th>기사 2</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlyOffListBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+                        <div class="font-bold text-amber-900 text-sm mb-2">스페어</div>
+                        <div id="monthlyOffListSpare" class="monthly-off-list-spare"></div>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap justify-end gap-2">
+                        <button type="button" onclick="commitMonthlyOffListSelections()" class="px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm">월휴무자명단저장</button>
+                        <button type="button" onclick="loadMonthlyOffListTxtFile()" class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm">휴무자명단불러오기</button>
+                    </div>
+
+                    <!-- 휴무일자 + 휴무기사 다중선택 → 연결 테이블 -->
+                    <div class="mt-6 monthly-off-day-card">
+                        <div class="monthly-off-day-card-head">
+                            <div class="monthly-off-day-card-title">
+                                <span class="monthly-off-day-card-badge">OFF</span>
+                                <span>휴무일자 · 휴무기사 등록</span>
+                            </div>
+                            <div class="monthly-off-day-card-desc">달력에서 휴무일자를 고르고, 휴무기사명을 다중 선택한 뒤 「추가」를 누르면 아래 표에 연결됩니다.</div>
+                        </div>
+
+                        <div class="monthly-off-day-controls">
+                            <div class="monthly-off-day-field monthly-off-day-field-date">
+                                <label class="monthly-off-day-label monthly-off-day-label-lg">휴무일자</label>
+                                <input type="date" id="monthlyOffDayDate" class="monthly-off-day-date">
+                            </div>
+                            <div class="monthly-off-day-field monthly-off-day-field-drivers">
+                                <label class="monthly-off-day-label">휴무기사명 <span class="monthly-off-day-label-sub">(다중선택)</span></label>
+                                <div class="monthly-off-day-drivers-row">
+                                    <div class="monthly-off-day-drivers-select relative">
+                                        <button type="button" id="monthlyOffDriverMultiBtn" onclick="toggleMonthlyOffDriverMulti()" class="monthly-off-multi-btn">
+                                            <span id="monthlyOffDriverMultiLabel" class="monthly-off-multi-label-placeholder">휴무기사선택</span>
+                                            <span class="monthly-off-multi-caret">▼</span>
+                                        </button>
+                                        <div id="monthlyOffDriverMultiPanel" class="monthly-off-multi-panel hidden">
+                                            <div id="monthlyOffDriverMultiList"></div>
+                                        </div>
+                                    </div>
+                                    <div class="monthly-off-day-actions">
+                                        <button type="button" onclick="addMonthlyOffDayEntry()" class="monthly-off-day-btn-add">추가</button>
+                                        <button type="button" onclick="clearMonthlyOffDaySelection()" class="monthly-off-day-btn-reset">초기화</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="monthly-off-day-table-wrap">
+                            <table class="monthly-off-day-table">
+                                <thead>
+                                    <tr>
+                                        <th class="monthly-off-day-th-date">휴무일자</th>
+                                        <th>휴무기사명</th>
+                                        <th class="monthly-off-day-th-del">삭제</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthlyOffDayTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- 탭 9: 노선/차량/스페어 정보 -->
             <section id="view-info" class="tab-content hidden">
                 <div class="mb-5 pb-3 border-b border-slate-100">
@@ -1106,9 +1575,19 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             setTimeout(updateStickyTabPosition, 100);
         });
 
+        document.addEventListener('click', function(e){
+            const panel = document.getElementById('monthlyOffDriverMultiPanel');
+            const btn = document.getElementById('monthlyOffDriverMultiBtn');
+            if (!panel || panel.classList.contains('hidden')) return;
+            if (panel.contains(e.target) || (btn && btn.contains(e.target))) return;
+            panel.classList.add('hidden');
+        });
+
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             updateStickyTabPosition();
+            // 내장 샘플 데이터도 월 휴무자 명단 TXT 기본값 스냅샷으로 보관
+            captureTxtBaselineFromAppData();
             syncDatePickerToCurrentMonth();
 
             // 모바일 날짜 선택기 대응: change뿐 아니라 input/blur도 감지합니다.
@@ -1295,6 +1774,646 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             document.getElementById('customModal').classList.add('hidden');
         }
 
+
+        // 월 휴무자 명단 전용 데이터입니다.
+        // appData.routes / appData.offDays / manualOverrides를 전혀 변경하지 않습니다.
+        let monthlyOffListSelections = {};
+        let monthlyOffListLoadedStorageKey = '';
+        const MONTHLY_OFF_LIST_STORAGE_KEY = 'daeho_monthly_off_list_v4';
+        // 월 휴무자 명단 기본값: 노선/차량/스페어 정보(탭)가 아니라
+        // 최초(또는 마지막) 메인 TXT 불러오기 시점의 정규·스페어 기사 스냅샷을 사용합니다.
+        let txtBaselineData = { routes: null, spares: null };
+        // true: 사용자가 '휴무자명단불러오기'로 연 값 표시 중(기본 TXT 스냅샷 강제 적용 안 함)
+        let monthlyOffListOverrideFromFile = false;
+        // 휴무일자·휴무기사 연결 목록 [{ date:'YYYY-MM-DD', drivers:['이름',...] }, ...]
+        let monthlyOffDayEntries = [];
+        let monthlyOffDaySelectedDrivers = [];
+
+        function captureTxtBaselineFromAppData() {
+            try {
+                txtBaselineData = {
+                    routes: JSON.parse(JSON.stringify(appData.routes || {})),
+                    spares: (appData.spares || []).map(s => String(s).replace('(S)', '').trim()).filter(Boolean)
+                };
+            } catch (e) {
+                txtBaselineData = {
+                    routes: appData.routes || {},
+                    spares: (appData.spares || []).slice()
+                };
+            }
+        }
+
+        function getMonthlyOffBaselineRoutes() {
+            if (txtBaselineData && txtBaselineData.routes && Object.keys(txtBaselineData.routes).length) {
+                return txtBaselineData.routes;
+            }
+            return appData.routes || {};
+        }
+
+        function getMonthlyOffBaselineSpares() {
+            if (txtBaselineData && Array.isArray(txtBaselineData.spares) && txtBaselineData.spares.length) {
+                return txtBaselineData.spares.map(s => String(s).replace('(S)', '').trim()).filter(Boolean);
+            }
+            return (appData.spares || []).map(s => String(s).replace('(S)', '').trim()).filter(Boolean);
+        }
+
+
+        function monthlyOffListStorageKey(){
+            return `${MONTHLY_OFF_LIST_STORAGE_KEY}_${currentYear}_${currentMonth}`;
+        }
+
+        function loadMonthlyOffListSelections(force=false){
+            const storageKey = monthlyOffListStorageKey();
+            // 같은 달을 다시 그릴 때는 메모리상의 미저장 변경값을 유지합니다.
+            if(!force && monthlyOffListLoadedStorageKey === storageKey) return;
+            try{
+                const raw = localStorage.getItem(storageKey);
+                monthlyOffListSelections = raw ? JSON.parse(raw) : {};
+                if(!monthlyOffListSelections || typeof monthlyOffListSelections !== 'object') monthlyOffListSelections = {};
+            }catch(e){ monthlyOffListSelections = {}; }
+            monthlyOffListLoadedStorageKey = storageKey;
+        }
+
+        function saveMonthlyOffListSelections(){
+            try{ localStorage.setItem(monthlyOffListStorageKey(), JSON.stringify(monthlyOffListSelections)); }catch(e){}
+        }
+
+        function getMonthlyOffListAllDrivers(){
+            const names = [];
+            Object.values(appData.routes || {}).forEach(route => (route || []).forEach(bus => (bus.drivers || []).forEach(n => {
+                const name = String(n || '').replace('(S)','').replace(/배봉균/g,'배봉군').trim();
+                if(name && !names.includes(name)) names.push(name);
+            })));
+            (appData.spares || []).forEach(n => {
+                const name = String(n || '').replace('(S)','').replace(/배봉균/g,'배봉군').trim();
+                if(name && !names.includes(name)) names.push(name);
+            });
+            return names;
+        }
+
+        function getMonthlyOffListRouteDrivers(routeName){
+            const route = appData.routes?.[routeName] || [];
+            const names = [];
+            route.forEach(bus => (bus.drivers || []).forEach(n => {
+                const name = String(n || '').replace('(S)','').replace(/배봉균/g,'배봉군').trim();
+                if(name && !(appData.spares || []).some(s => String(s).replace('(S)','').trim() === name) && !names.includes(name)) names.push(name);
+            }));
+            return names;
+        }
+
+        function monthlyOffListOptions(names, selected=''){
+            const sorted = [...new Set((names || []).filter(Boolean).map(String))].sort((a,b)=>b.localeCompare(a,'ko'));
+            const arr = [''].concat(sorted);
+            return arr.map(name => {
+                const safe = String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+                const selectedAttr = (String(name) === String(selected)) ? ' selected' : '';
+                return `<option value="${safe}"${selectedAttr}>${name ? safe : ''}</option>`;
+            }).join('');
+        }
+
+        function updateMonthlyOffListSelection(key, value){
+            const el = document.querySelector(`select[data-monthly-off-key="${CSS.escape(key)}"]`);
+            if(el){ const isSpare = (appData.spares || []).some(s => String(s).replace('(S)','').trim() === String(value || '').trim()); el.classList.toggle('spare-select', !!isSpare); }
+            // 변경 즉시 localStorage에 저장하지 않습니다.
+            // 반드시 「휴무자저장」 버튼을 눌렀을 때만 저장됩니다.
+            monthlyOffListSelections[key] = value || '';
+        }
+
+        function commitMonthlyOffListSelections(){
+    try{
+        document.querySelectorAll('[data-monthly-off-key]').forEach(el=>{
+            monthlyOffListSelections[el.getAttribute('data-monthly-off-key')] = el.value || '';
+        });
+        document.querySelectorAll('.monthly-off-spare-input').forEach((el,idx)=>{
+            monthlyOffListSelections['스페어|'+(idx+1)] = el.value || '';
+        });
+
+        const lines=[];
+        const baselineRoutes = getMonthlyOffBaselineRoutes();
+        const baselineSpares = getMonthlyOffBaselineSpares();
+        Object.entries(baselineRoutes || {}).forEach(([routeName,buses])=>{
+            lines.push('['+routeName+']');
+            (buses||[]).forEach(bus=>{
+                const k1=routeName+'|'+bus.busNo+'|1';
+                const k2=routeName+'|'+bus.busNo+'|2';
+                const d1=String(monthlyOffListSelections[k1] ?? (bus.drivers||[])[0] ?? '').replace('(S)','').trim();
+                const d2=String(monthlyOffListSelections[k2] ?? (bus.drivers||[])[1] ?? '').replace('(S)','').trim();
+                lines.push(bus.busNo+': '+d1+', '+d2);
+            });
+            lines.push('');
+        });
+        lines.push('[스페어]');
+        // 스페어는 한 줄로 저장 (예: 박상현, 문성현, 김영훈)
+        const spareLineNames = [];
+        for (let i = 1; i <= 3; i++) {
+            const name = String(monthlyOffListSelections['스페어|' + i] ?? baselineSpares[i - 1] ?? '').replace('(S)', '').trim();
+            if (name) spareLineNames.push(name);
+        }
+        lines.push(spareLineNames.join(', '));
+
+        // 휴무일자·휴무기사 테이블 → 직원 일자별 휴일자 명단
+        // 예: 2026-09-01: 최기관, 정종상
+        lines.push('');
+        lines.push('직원 일자별 휴일자 명단');
+        const dayEntries = (monthlyOffDayEntries || [])
+            .slice()
+            .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+        dayEntries.forEach(entry => {
+            const d = String(entry.date || '').trim();
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+            const names = (entry.drivers || [])
+                .map(n => String(n || '').replace('(S)', '').trim())
+                .filter(Boolean);
+            if (!names.length) return;
+            lines.push(d + ': ' + names.join(', '));
+        });
+
+        // 파일명: 테이블에 등록된 휴무일자의 년도_월_휴무자명단.txt
+        // 예) 테이블에 2026-09-01 이 있으면 → 2026_09_휴무자명단.txt
+        // 테이블이 비어 있으면 현재 관리 중인 연·월 사용
+        let saveYear = currentYear;
+        let saveMonth = currentMonth;
+        const datedEntries = (monthlyOffDayEntries || [])
+            .map(e => String(e.date || '').trim())
+            .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d))
+            .sort();
+        if (datedEntries.length) {
+            const parts = datedEntries[0].split('-').map(Number);
+            if (parts[0] >= 1900 && parts[1] >= 1 && parts[1] <= 12) {
+                saveYear = parts[0];
+                saveMonth = parts[1];
+            }
+        }
+        const fileName = saveYear + '_' + String(saveMonth).padStart(2, '0') + '_휴무자명단.txt';
+        // 휴무자명단 저장에서는 '텍스트...'로 시작하는 별도 파일을 절대 생성하지 않습니다.
+        if (/^텍스트/i.test(fileName) || !/^(?:19|20)\d{2}_(?:0[1-9]|1[0-2])_휴무자명단\.txt$/.test(fileName)) {
+            throw new Error('invalid monthly off-list filename');
+        }
+        // BOM + CRLF. MIME은 text/plain 만 사용 (charset 표기는 iOS 공유에서 부가 text 항목을 유발할 수 있음)
+        const blob=new Blob(['\uFEFF'+lines.join('\r\n')+'\r\n'],{type:'text/plain'});
+        localStorage.setItem(monthlyOffListStorageKey(),JSON.stringify(monthlyOffListSelections||{}));
+        monthlyOffListLoadedStorageKey=monthlyOffListStorageKey();
+
+        // PC/Android Chrome: 파일 선택창을 이용하면 같은 파일을 선택해 덮어쓸 수 있습니다.
+        if(window.showSaveFilePicker){
+            window.showSaveFilePicker({
+                suggestedName:fileName,
+                types:[{description:'휴무자명단 TXT 파일',accept:{'text/plain':['.txt']}}]
+            }).then(async handle=>{
+                const writable=await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                showModal('저장 완료',fileName+' 파일이 저장되었습니다.');
+            }).catch(err=>{
+                if(err && err.name==='AbortError') return;
+                downloadMonthlyOffListFile(blob,fileName);
+            });
+            return;
+        }
+
+        // iPhone/iPad: Files 앱으로 보내 저장합니다.
+        // 중요: title/text 를 넘기면 iOS가 "텍스트.txt" 같은 별도 텍스트 파일을 추가로 만듭니다.
+        // 반드시 files 배열만 전달합니다. (실제 파일은 2026_09_휴무자명단.txt 하나만)
+        const file=new File([blob],fileName,{type:'text/plain'});
+        if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+            navigator.share({files:[file]}).then(()=>{
+                showModal('저장 완료',fileName+' 저장 화면이 열렸습니다.\n기존 파일이 있으면 "대치"를 선택하세요.');
+            }).catch(err=>{
+                if(err && err.name==='AbortError') return;
+                downloadMonthlyOffListFile(blob,fileName);
+            });
+            return;
+        }
+        downloadMonthlyOffListFile(blob,fileName);
+    }catch(e){
+        console.error(e);
+        showModal('저장 오류','휴무자 명단 TXT 파일을 저장하지 못했습니다.');
+    }
+}
+
+function downloadMonthlyOffListFile(blob,fileName){
+    try{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;
+        a.download=fileName;
+        a.style.display='none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},2000);
+        showModal('저장 완료',fileName+' 파일 저장을 시작했습니다.');
+    }catch(e){
+        console.error(e);
+        showModal('저장 오류','TXT 파일 저장을 시작하지 못했습니다.');
+    }
+}
+
+function loadMonthlyOffListTxtFile(){
+    // iPhone Safari: display:none 또는 재사용 input 의 programmatic click 이 불안정한 경우가 있어
+    // iOS 에서는 매번 새 input 을 만들고, 같은 사용자 제스처 스택에서 즉시 click 합니다.
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    let input = document.getElementById('monthlyOffListTxtLoader');
+    if (input && isIOS) {
+        try { input.remove(); } catch (e) {}
+        input = null;
+    }
+    if (!input) {
+        input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'monthlyOffListTxtLoader';
+        // .txt 만 보이도록 (기기별 필터는 참고용, 최종 검증은 파일명 정규식)
+        input.accept = '.txt,text/plain';
+        input.setAttribute('accept', '.txt,text/plain');
+        // 화면 밖 고정 (display:none 금지 → iOS 에서 클릭 무시되는 경우 방지)
+        input.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;overflow:hidden;z-index:-1;';
+        input.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(input);
+        input.addEventListener('change', function () {
+            const file = input.files && input.files[0];
+            if (file) parseMonthlyOffListTxtFile(file);
+            // 같은 파일을 다시 선택해도 change 가 발생하도록 초기화
+            try { input.value = ''; } catch (e) {}
+        });
+    }
+    // 버튼 onclick 제스처 안에서 즉시 호출 (setTimeout 사용 금지 → 제스처 소멸)
+    try {
+        input.click();
+    } catch (e) {
+        showModal('파일 선택 오류', '파일 선택기를 열 수 없습니다. 다시 시도해 주세요.');
+    }
+}
+
+function parseMonthlyOffListTxtFile(file){
+    // iOS/macOS 파일명은 한글이 NFD(분해형)일 수 있음 → NFC로 통일 후 검증
+    // 경로가 포함될 수 있어 basename만 사용
+    let fileName = String(file && file.name || '').trim();
+    try { fileName = fileName.normalize('NFC'); } catch (e) {}
+    fileName = fileName.split(/[/\\]/).pop() || fileName;
+
+    // 허용: 2026_09_휴무자명단.txt  (월 반드시 2자리)
+    // 거부: 2026_9_..., ...(1).txt, 기사_배차변경_... 등
+    const exactNamePattern = /^(?:19|20)\d{2}_(?:0[1-9]|1[0-2])_휴무자명단\.txt$/i;
+    if (!exactNamePattern.test(fileName)) {
+        showModal(
+            '파일 선택 오류',
+            '허용 형식: 2026_09_휴무자명단.txt\n\n' +
+            '선택한 파일: ' + fileName + '\n\n' +
+            '다음 파일은 불러올 수 없습니다.\n' +
+            '· 2026_9_휴무자명단.txt (월 한 자리)\n' +
+            '· 2026_09_휴무자명단(1).txt (번호 접미사)\n' +
+            '· 다른 이름의 TXT 파일'
+        );
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function () {
+        try {
+            let raw = String(reader.result || '');
+            // BOM 제거 (UTF-8 / UTF-16 LE 일부)
+            raw = raw.replace(/^\uFEFF/, '').replace(/^\uFFFE/, '');
+            const lines = raw.split(/\r?\n/);
+            const loaded = {};
+            const loadedDayEntries = [];
+            let routeName = '';
+            let inSpare = false, inOffDays = false, spareIndex = 0;
+            lines.forEach(line => {
+                const s = line.trim();
+                if (!s) return;
+                // 대괄호 섹션
+                const sec = s.match(/^\[(.+)\]$/);
+                if (sec) {
+                    const secName = sec[1].trim().normalize('NFC');
+                    if (secName === '스페어' || secName === '스페어기사') {
+                        inSpare = true; inOffDays = false; routeName = ''; spareIndex = 0;
+                    } else if (secName === '휴무일자' || secName === '휴무일' || secName === '일자별휴무') {
+                        inSpare = false; inOffDays = true; routeName = '';
+                    } else {
+                        inSpare = false; inOffDays = false; routeName = secName;
+                    }
+                    return;
+                }
+                // 괄호 없는 헤더: 직원 일자별 휴일자 명단
+                const plainHead = s.normalize('NFC').replace(/\s+/g, ' ');
+                if (/직원\s*일자별\s*휴일자\s*명단/.test(plainHead) || plainHead === '휴일자 명단' || plainHead === '휴무자 명단') {
+                    inSpare = false; inOffDays = true; routeName = '';
+                    return;
+                }
+                if (inOffDays) {
+                    // 2026-09-01: 최기관, 정종상  또는  26-09-01: 이름
+                    const m = s.match(/^(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{2})\s*:\s*(.*)$/);
+                    if (m) {
+                        let dateKey = m[1].trim();
+                        if (/^\d{2}-\d{2}-\d{2}$/.test(dateKey)) {
+                            dateKey = '20' + dateKey;
+                        }
+                        const names = m[2].split(/[,，]/).map(v => v.replace(/\(S\)/g, '').trim()).filter(Boolean);
+                        if (names.length) {
+                            loadedDayEntries.push({ date: dateKey, drivers: [...new Set(names)].sort((a,b)=>a.localeCompare(b,'ko')) });
+                        }
+                    }
+                    return;
+                }
+                if (inSpare) {
+                    // 한 줄 콤마 구분 또는 여러 줄 모두 지원
+                    const parts = s.split(/[,，]/).map(v => v.replace(/\(S\)/g, '').trim()).filter(Boolean);
+                    parts.forEach(name => {
+                        if (spareIndex < 3) {
+                            loaded['스페어|' + (spareIndex + 1)] = name;
+                            spareIndex++;
+                        }
+                    });
+                    return;
+                }
+                if (routeName) {
+                    const m = s.match(/^(.+?)\s*:\s*(.*)$/);
+                    if (m) {
+                        const busNo = m[1].trim();
+                        if (/^\d{2,4}-\d{2}-\d{2}$/.test(busNo)) return;
+                        const names = m[2].split(/[,，]/).map(v => v.replace(/\(S\)/g, '').trim());
+                        loaded[routeName + '|' + busNo + '|1'] = names[0] || '';
+                        loaded[routeName + '|' + busNo + '|2'] = names[1] || '';
+                    }
+                }
+            });
+            if (!Object.keys(loaded).length && !loadedDayEntries.length) {
+                throw new Error('empty-or-unparsed');
+            }
+            monthlyOffListSelections = loaded;
+            monthlyOffDayEntries = loadedDayEntries.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+            monthlyOffListOverrideFromFile = true;
+            monthlyOffListLoadedStorageKey = monthlyOffListStorageKey();
+            renderMonthlyOffListView();
+            showModal('불러오기 완료', fileName + '의 휴무자 명단을 불러왔습니다.');
+        } catch (e) {
+            console.error(e);
+            showModal('불러오기 오류', '휴무자명단 TXT 파일 내용 형식이 올바르지 않습니다.\n\n[노선]\n차량: 기사1, 기사2\n[스페어]\n이름\n형식으로 저장되어 있는지 확인해 주세요.');
+        }
+    };
+    reader.onerror = function () { showModal('불러오기 오류', 'TXT 파일을 읽지 못했습니다.'); };
+    // 인코딩: 대부분 UTF-8. 실패 시 브라우저 기본 처리
+    try {
+        reader.readAsText(file, 'utf-8');
+    } catch (e) {
+        reader.readAsText(file);
+    }
+}
+
+function getMonthlyOffAllDriverNames(){
+            const normalizeDriverName = v => String(v ?? '').replace('(S)','').replace(/배봉균/g,'배봉군').trim();
+            const baselineRoutes = getMonthlyOffBaselineRoutes();
+            const baselineSpares = getMonthlyOffBaselineSpares().map(normalizeDriverName).filter(Boolean);
+            const names = Object.values(baselineRoutes || {}).flatMap(bs => (bs || []).flatMap(b => (b.drivers || []).map(normalizeDriverName)))
+                .concat(baselineSpares)
+                .filter(Boolean);
+            return [...new Set(names)].sort((a,b)=>a.localeCompare(b,'ko'));
+        }
+
+        function syncMonthlyOffDayDatePicker(){
+            const el = document.getElementById('monthlyOffDayDate');
+            if (!el) return;
+            // 현재 관리 월의 다음 달만 선택 가능 (9월 관리 중이면 10월만 추가)
+            let y = currentYear;
+            let m = currentMonth + 1;
+            if (m > 12) { m = 1; y += 1; }
+            const mStr = String(m).padStart(2,'0');
+            const last = getDaysInMonth(y, m);
+            el.min = `${y}-${mStr}-01`;
+            el.max = `${y}-${mStr}-${String(last).padStart(2,'0')}`;
+            if (!el.value || el.value < el.min || el.value > el.max) {
+                el.value = `${y}-${mStr}-01`;
+            }
+            // 날짜가 바뀌면 이미 등록된 기사 제외를 위해 목록 갱신
+            if (!el._boundChange) {
+                el._boundChange = true;
+                el.addEventListener('change', function(){
+                    const already = getDriversAlreadyOnDate(el.value);
+                    monthlyOffDaySelectedDrivers = monthlyOffDaySelectedDrivers.filter(n => !already.includes(n));
+                    const panel = document.getElementById('monthlyOffDriverMultiPanel');
+                    if (panel && !panel.classList.contains('hidden')) renderMonthlyOffDriverMultiList();
+                    else updateMonthlyOffDriverMultiLabel();
+                });
+            }
+        }
+
+        function updateMonthlyOffDriverMultiLabel(){
+            const label = document.getElementById('monthlyOffDriverMultiLabel');
+            if (!label) return;
+            if (!monthlyOffDaySelectedDrivers.length) {
+                label.textContent = '휴무기사선택';
+                label.className = 'monthly-off-multi-label-placeholder truncate';
+            } else {
+                label.textContent = monthlyOffDaySelectedDrivers.join(', ');
+                label.className = 'truncate';
+                label.style.color = '#0f172a';
+                label.style.fontWeight = '800';
+            }
+        }
+
+        function getDriversAlreadyOnDate(dateVal){
+            if (!dateVal) return [];
+            const entry = (monthlyOffDayEntries || []).find(e => e.date === dateVal);
+            return entry ? (entry.drivers || []).slice() : [];
+        }
+
+        function renderMonthlyOffDriverMultiList(){
+            const list = document.getElementById('monthlyOffDriverMultiList');
+            if (!list) return;
+            const names = getMonthlyOffAllDriverNames();
+            const dateEl = document.getElementById('monthlyOffDayDate');
+            const dateVal = dateEl ? dateEl.value : '';
+            const already = getDriversAlreadyOnDate(dateVal);
+            // 이미 해당 일자에 등록된 기사는 선택 목록에서 제외
+            const available = names.filter(n => !already.includes(n));
+            // 선택 중인데 이미 등록된 기사가 있으면 선택 상태도 정리
+            monthlyOffDaySelectedDrivers = monthlyOffDaySelectedDrivers.filter(n => !already.includes(n));
+            list.innerHTML = available.map(name => {
+                const checked = monthlyOffDaySelectedDrivers.includes(name) ? 'checked' : '';
+                const safe = String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+                return `<label><input type="checkbox" value="${safe}" ${checked} onchange="onMonthlyOffDriverCheck(this)"> ${safe}</label>`;
+            }).join('') || '<div class="text-xs text-slate-400 p-2">' + (already.length ? '이 일자에 등록 가능한 기사가 없습니다.' : '선택 가능한 기사가 없습니다. TXT를 먼저 불러오세요.') + '</div>';
+            updateMonthlyOffDriverMultiLabel();
+        }
+
+        function toggleMonthlyOffDriverMulti(){
+            const panel = document.getElementById('monthlyOffDriverMultiPanel');
+            if (!panel) return;
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) renderMonthlyOffDriverMultiList();
+        }
+
+        function onMonthlyOffDriverCheck(cb){
+            const name = String(cb.value || '').trim();
+            if (!name) return;
+            if (cb.checked) {
+                if (!monthlyOffDaySelectedDrivers.includes(name)) monthlyOffDaySelectedDrivers.push(name);
+            } else {
+                monthlyOffDaySelectedDrivers = monthlyOffDaySelectedDrivers.filter(n => n !== name);
+            }
+            updateMonthlyOffDriverMultiLabel();
+        }
+
+        function clearMonthlyOffDaySelection(){
+            monthlyOffDaySelectedDrivers = [];
+            const panel = document.getElementById('monthlyOffDriverMultiPanel');
+            if (panel) panel.querySelectorAll('input[type=checkbox]').forEach(c => { c.checked = false; });
+            updateMonthlyOffDriverMultiLabel();
+            syncMonthlyOffDayDatePicker();
+        }
+
+        function addMonthlyOffDayEntry(){
+            const dateEl = document.getElementById('monthlyOffDayDate');
+            const dateVal = dateEl ? dateEl.value : '';
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+                showModal('입력 오류', '휴무일자를 달력에서 선택해 주세요.');
+                return;
+            }
+            const min = dateEl.min, max = dateEl.max;
+            if ((min && dateVal < min) || (max && dateVal > max)) {
+                (function(){
+                let y = currentYear, m = currentMonth + 1;
+                if (m > 12) { m = 1; y += 1; }
+                showModal('입력 오류', `${y}년 ${m}월 날짜만 추가할 수 있습니다.`);
+            })();
+                return;
+            }
+            if (!monthlyOffDaySelectedDrivers.length) {
+                showModal('입력 오류', '휴무기사명을 한 명 이상 선택해 주세요.');
+                return;
+            }
+            // 같은 일자에 이미 등록된 기사는 제외
+            const already = getDriversAlreadyOnDate(dateVal);
+            const drivers = monthlyOffDaySelectedDrivers.filter(n => !already.includes(n));
+            if (!drivers.length) {
+                showModal('중복 선택', '선택한 기사는 이미 해당 일자에 등록되어 있습니다.');
+                return;
+            }
+            if (drivers.length !== monthlyOffDaySelectedDrivers.length) {
+                const dup = monthlyOffDaySelectedDrivers.filter(n => already.includes(n));
+                showModal('일부 중복', `이미 등록된 기사(${dup.join(', ')})는 제외하고 추가합니다.`);
+            }
+            const existIdx = monthlyOffDayEntries.findIndex(e => e.date === dateVal);
+            if (existIdx >= 0) {
+                const merged = [...new Set([...(monthlyOffDayEntries[existIdx].drivers || []), ...drivers])];
+                monthlyOffDayEntries[existIdx].drivers = merged.sort((a,b)=>a.localeCompare(b,'ko'));
+            } else {
+                monthlyOffDayEntries.push({ date: dateVal, drivers: drivers.sort((a,b)=>a.localeCompare(b,'ko')) });
+                monthlyOffDayEntries.sort((a,b)=>a.date.localeCompare(b.date));
+            }
+            renderMonthlyOffDayTable();
+            clearMonthlyOffDaySelection();
+            // 패널이 열려 있으면 목록 갱신(이미 등록된 기사 제외)
+            const panel = document.getElementById('monthlyOffDriverMultiPanel');
+            if (panel && !panel.classList.contains('hidden')) renderMonthlyOffDriverMultiList();
+        }
+
+        function removeMonthlyOffDayEntry(idx){
+            if (idx < 0 || idx >= monthlyOffDayEntries.length) return;
+            monthlyOffDayEntries.splice(idx, 1);
+            renderMonthlyOffDayTable();
+        }
+
+        function formatMonthlyOffDayDisplay(iso){
+            // YYYY-MM-DD → M월 D일(요일)
+            const p = String(iso || '').split('-').map(Number);
+            if (p.length !== 3 || !p[0]) return iso || '';
+            const dow = getDayOfWeekStr(p[0], p[1], p[2]);
+            return `${p[1]}월 ${p[2]}일(${dow})`;
+        }
+
+        function renderMonthlyOffDayTable(){
+            const body = document.getElementById('monthlyOffDayTableBody');
+            if (!body) return;
+            const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            if (!monthlyOffDayEntries.length) {
+                // 빈 상태에서도 5칸이 보이도록 플레이스홀더 행
+                body.innerHTML = Array.from({length:5}, () =>
+                    `<tr class="off-day-empty"><td>—</td><td class="off-day-names-cell" style="text-align:center">—</td><td></td></tr>`
+                ).join('');
+                return;
+            }
+            let rows = monthlyOffDayEntries.map((entry, idx) => {
+                const names = (entry.drivers || []).join(', ');
+                return `<tr>
+                    <td class="off-day-date-cell">${esc(formatMonthlyOffDayDisplay(entry.date))}</td>
+                    <td class="off-day-names-cell">${esc(names)}</td>
+                    <td><button type="button" class="off-day-del" onclick="removeMonthlyOffDayEntry(${idx})">삭제</button></td>
+                </tr>`;
+            }).join('');
+            // 최소 5행 보이도록 빈 행 채움
+            const pad = Math.max(0, 5 - monthlyOffDayEntries.length);
+            for (let i = 0; i < pad; i++) {
+                rows += `<tr class="off-day-empty"><td>—</td><td class="off-day-names-cell" style="text-align:center">—</td><td></td></tr>`;
+            }
+            body.innerHTML = rows;
+        }
+
+        function renderMonthlyOffListView(){
+            const body = document.getElementById('monthlyOffListBody');
+            const spareWrap = document.getElementById('monthlyOffListSpare');
+            if(!body || !spareWrap) return;
+
+            if (!txtBaselineData.routes || !Object.keys(txtBaselineData.routes).length) {
+                captureTxtBaselineFromAppData();
+            }
+
+            const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            const normalizeDriverName = v => String(v ?? '').replace('(S)','').replace(/배봉균/g,'배봉군').trim();
+
+            const baselineRoutes = getMonthlyOffBaselineRoutes();
+            const baselineSpares = getMonthlyOffBaselineSpares().map(normalizeDriverName).filter(Boolean);
+            const allMonthlyOffDrivers = Object.values(baselineRoutes).flatMap(bs => (bs || []).flatMap(b => (b.drivers || []).map(normalizeDriverName)))
+                .concat(baselineSpares)
+                .filter(Boolean);
+            const comboDrivers = [...new Set(allMonthlyOffDrivers)].sort((a,b)=>b.localeCompare(a,'ko'));
+
+            // 기본 표시는 메인 TXT 스냅샷만 사용합니다.
+            // localStorage/이전에 저장해 둔 휴무자명단 값은 자동 적용하지 않습니다.
+            // (단, 사용자가 방금 '휴무자명단불러오기'를 눌렀을 때만 그 파일 내용을 화면에 반영)
+            if (!monthlyOffListOverrideFromFile) {
+                monthlyOffListSelections = {};
+                Object.entries(baselineRoutes || {}).forEach(([routeName, buses]) => {
+                    (buses || []).forEach(bus => {
+                        const defaults = (bus.drivers || []).map(normalizeDriverName);
+                        monthlyOffListSelections[`${routeName}|${bus.busNo}|1`] = defaults[0] || '';
+                        monthlyOffListSelections[`${routeName}|${bus.busNo}|2`] = defaults[1] || '';
+                    });
+                });
+                for (let i = 0; i < 3; i++) {
+                    monthlyOffListSelections[`스페어|${i+1}`] = baselineSpares[i] || '';
+                }
+            }
+
+            const rows = [];
+            Object.entries(baselineRoutes || {}).forEach(([routeName, buses]) => {
+                (buses || []).forEach((bus, idx) => {
+                    const key1 = `${routeName}|${bus.busNo}|1`;
+                    const key2 = `${routeName}|${bus.busNo}|2`;
+                    if (!(key1 in monthlyOffListSelections)) monthlyOffListSelections[key1] = '';
+                    if (!(key2 in monthlyOffListSelections)) monthlyOffListSelections[key2] = '';
+                    rows.push(`<tr>
+                        ${idx===0 ? `<td class="route-cell ${routeName === '15번' ? 'route15' : routeName === '19번' ? 'route19' : ''}" rowspan="${buses.length}">${esc(routeName)}</td>` : ''}
+                        <td class="bus-cell">${esc(bus.busNo)}</td>
+                        <td><select class="monthly-off-driver-select" data-monthly-off-key="${esc(key1)}" onchange="updateMonthlyOffListSelection('${esc(key1)}', this.value)">${monthlyOffListOptions(comboDrivers, monthlyOffListSelections[key1])}</select></td>
+                        <td><select class="monthly-off-driver-select" data-monthly-off-key="${esc(key2)}" onchange="updateMonthlyOffListSelection('${esc(key2)}', this.value)">${monthlyOffListOptions(comboDrivers, monthlyOffListSelections[key2])}</select></td>
+                    </tr>`);
+                });
+            });
+            body.innerHTML = rows.join('');
+
+            const spareCards = [];
+            for(let i=0;i<3;i++){
+                const key = `스페어|${i+1}`;
+                if (!(key in monthlyOffListSelections)) monthlyOffListSelections[key] = '';
+                const value = esc(monthlyOffListSelections[key] || '');
+                spareCards.push(`<input class="monthly-off-spare-input" type="text" value="${value}" placeholder="스페어 기사 ${i+1}" onchange="updateMonthlyOffListSelection('${key}', this.value)" oninput="updateMonthlyOffListSelection('${key}', this.value)">`);
+            }
+                        spareWrap.innerHTML = spareCards.join('');
+            syncMonthlyOffDayDatePicker();
+            renderMonthlyOffDriverMultiList();
+            renderMonthlyOffDayTable();
+            lucide.createIcons();
+        }
+
         function switchTab(tabId) {
             currentTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -1359,7 +2478,8 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 'offMatrixMonthTitle',
                 'offDaysMonthTitle',
                 'driverStatsMonthTitle',
-                'driverGraphMonthTitle'
+                'driverGraphMonthTitle',
+                'monthlyOffListMonthTitle'
             ];
             ids.forEach(id => {
                 const el = document.getElementById(id);
@@ -1381,6 +2501,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             renderOffDaysView();
             renderDriverStatsView();
             renderDriverWorkGraph();
+            renderMonthlyOffListView();
             renderInfoView();
             lucide.createIcons();
             applySpareDriverGlobalStyle();
@@ -1497,7 +2618,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 }
             };
 
-            // 예: 대호_배차_2026-09.txt, 26-09-01.txt
+            // 예: 기사_배차변경_2026-09.txt, 26-09-01.txt
             detectDate(fileName);
 
             lines.forEach(line => {
@@ -1594,6 +2715,14 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             if (Object.keys(newOffDays).length > 0) appData.offDays = newOffDays;
             manualOverrides = newManualOverrides;
             manualOffDisplayOverrides = newManualOffDisplayOverrides;
+            // 메인 TXT 불러오기 직후 정규·스페어를 월 휴무자 명단 기본값 스냅샷으로 보관
+            if (Object.keys(newRoutes).length > 0 || newSpares.length > 0) {
+                captureTxtBaselineFromAppData();
+                monthlyOffListOverrideFromFile = false;
+                monthlyOffListSelections = {};
+                monthlyOffDayEntries = [];
+                monthlyOffDaySelectedDrivers = [];
+            }
         }
 
         function isSunday(dateKey, targetYear = null) {
@@ -2912,7 +4041,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                             <select id="txtDeleteYear" style="flex:1;padding:11px 10px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;font-weight:700;background:#fff;">${yearOptions.join('')}</select>
                             <select id="txtDeleteMonth" style="flex:1;padding:11px 10px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;font-weight:700;background:#fff;">${monthOptions.join('')}</select>
                         </div>
-                        <div style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.5;">예: 2026년 9월 선택 → <b>대호_배차변경_2026-09</b>로 시작하는 TXT 파일만 삭제됩니다.</div>
+                        <div style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.5;">예: 2026년 9월 선택 → <b>기사_배차변경_2026-09</b>로 시작하는 TXT 파일만 삭제됩니다.</div>
                     </div>
                     <div style="padding:0 18px 18px;display:flex;gap:10px;">
                         <button type="button" id="txtDeleteCancel" style="flex:1;padding:12px;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:10px;font-weight:700;cursor:pointer;">취소</button>
@@ -2932,8 +4061,8 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
             };
         }
 
-        // 현재 선택된 월의 "대호_배차변경_" TXT 파일만 삭제합니다.
-        // 예: 2026년 9월 선택 → 대호_배차변경_2026-09-...txt 만 삭제
+        // 현재 선택된 월의 "기사_배차변경_" TXT 파일만 삭제합니다.
+        // 예: 2026년 9월 선택 → 기사_배차변경_2026-09-...txt 만 삭제
         // 안드로이드/PC 기준 폴더는 다운로드(Downloads) 폴더입니다.
         async function deleteSavedTxtFiles(selectedYear = currentYear, selectedMonth = currentMonth) {
             try {
@@ -2943,7 +4072,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 }
 
                 const mmStr = String(selectedMonth).padStart(2, '0');
-                const monthPrefix = `대호_배차변경_${selectedYear}-${mmStr}`;
+                const monthPrefix = `기사_배차변경_${selectedYear}-${mmStr}`;
 
                 const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
                 // 다운로드 폴더를 선택해 주세요. (폴더 이름은 기기/언어에 따라 Download, Downloads, 다운로드 등일 수 있습니다)
@@ -2966,7 +4095,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
 
                 showModal('삭제 완료', count
                     ? `${selectedYear}년 ${selectedMonth}월의 TXT 파일 ${count}개를 삭제했습니다.`
-                    : `${selectedYear}년 ${selectedMonth}월의 '대호_배차변경_' TXT 파일이 없습니다.`);
+                    : `${selectedYear}년 ${selectedMonth}월의 '기사_배차변경_' TXT 파일이 없습니다.`);
             } catch (err) {
                 if (err && err.name === 'AbortError') return;
                 console.error('TXT 파일 삭제 오류:', err);
@@ -3068,7 +4197,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                 const now = new Date();
                 const pad2 = n => String(n).padStart(2, '0');
                 const timestamp = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}_${pad2(now.getHours())}시${pad2(now.getMinutes())}분${pad2(now.getSeconds())}초`;
-                const fileName = `대호_배차변경_${timestamp}.txt`;
+                const fileName = `기사_배차변경_${timestamp}.txt`;
 
                 // iPhone/iPad: 파일만 공유합니다. (원하는 폴더에 저장)
                 const file = new File([blob], fileName, { type: 'text/plain' });
@@ -3844,7 +4973,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     ext = 'jpg';
                 }
 
-                // 저장명: 대호_탭명_월 형식
+                // 저장명: 이미지_탭명_월 형식
                 const tabNameMap = {
                     'view-daily': '일자별배차현황',
                     'view-weekly': '월간배차현황_주별통합',
@@ -3857,7 +4986,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     'view-info': '노선차량스페어정보'
                 };
                 const tabName = tabNameMap[active.id] || '배차현황';
-                const filePrefix = `대호_${tabName}`;
+                const filePrefix = `이미지_${tabName}`;
                 await downloadFile(blob, `${filePrefix}_${currentMonth}월.${ext}`);
 
             } catch (err) {
