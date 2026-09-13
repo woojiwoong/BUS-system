@@ -19,6 +19,8 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- html2canvas CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- JSZip CDN (주별 이미지 여러 장을 zip 하나로 묶어 한 번에 저장하기 위함) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Custom Font: Noto Sans KR -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -1126,6 +1128,10 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                         <div id="weeklyMonthTitle" class="text-xs sm:text-sm font-bold text-brand-700 text-center mt-1">2026년 9월</div>
                     </div>
                     <div class="flex flex-col items-center gap-2 flex-shrink-0">
+                        <button type="button" onclick="openWeeklyImageSelectModal()" class="no-print cursor-pointer bg-indigo-700 hover:bg-indigo-600 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-sm whitespace-nowrap flex-shrink-0">
+                            <i data-lucide="image" class="w-4 h-4"></i>
+                            <span>주별이미지저장</span>
+                        </button>
                         <span class="text-xs sm:text-sm font-extrabold text-red-600 whitespace-nowrap">⚠️ 배차가 변경되면 꼭 위의 TXT저장을 누르세요</span>
                     </div>
                 </div>
@@ -3983,14 +3989,28 @@ function getMonthlyOffAllDriverNames(){
             // iPhone: 공유 메뉴를 우선 사용합니다.
             const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
 
+            // 파일 확장자로 정확한 MIME 타입을 추정합니다.
+            // blob.type이 비어있거나(zip 등) 잘못 지정되면 iOS가 내용물을 이미지/텍스트로
+            // 잘못 인식해서 "텍스트....txt" 같은 엉뚱한 파일을 대신 만들어버리므로,
+            // 공유/다운로드 직전에 반드시 정확한 타입으로 바로잡습니다.
+            const extToMime = {
+                png: 'image/png',
+                jpg: 'image/jpeg',
+                jpeg: 'image/jpeg',
+                zip: 'application/zip',
+                txt: 'text/plain'
+            };
+            const ext = (fileName.split('.').pop() || '').toLowerCase();
+            const correctType = extToMime[ext] || blob.type || 'application/octet-stream';
+            const typedBlob = (blob.type === correctType) ? blob : blob.slice(0, blob.size, correctType);
+
             if (isIOS) {
                 try {
-                    const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+                    const file = new File([typedBlob], fileName, { type: correctType });
                     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: fileName
-                        });
+                        // 중요: title/text 를 함께 넘기면 iOS가 "텍스트....txt" 같은
+                        // 별도 텍스트 파일을 추가로 만듭니다. 반드시 files 배열만 전달합니다.
+                        await navigator.share({ files: [file] });
                         return;
                     }
                 } catch (err) {
@@ -3999,7 +4019,7 @@ function getMonthlyOffAllDriverNames(){
             }
 
             // Android / PC / 기타: 브라우저 기본 다운로드 → 다운로드(Downloads) 폴더
-            const url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(typedBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = fileName;
@@ -4465,6 +4485,279 @@ function getMonthlyOffAllDriverNames(){
                 const day = Number(el.getAttribute('data-image-date'));
                 if (day) markHoliday(el, day);
             });
+        }
+
+        // ===== 월간 배차현황(주별통합) 탭 전용: 주차별 이미지 저장 =====
+        function getWeeklyRangesForImage(year, month) {
+            const totalDays = getDaysInMonth(year, month);
+            let ranges = {}, weekCount = 1, start = 1;
+            for (let i = 1; i <= totalDays; i++) {
+                let dow = new Date(year, month - 1, i).getDay();
+                if (dow === 6 && i >= start) {
+                    ranges[weekCount] = { title: `${weekCount}주차`, start, end: i };
+                    weekCount++;
+                    start = i + 1;
+                }
+            }
+            if (start <= totalDays) {
+                ranges[weekCount] = { title: `${weekCount}주차`, start, end: totalDays };
+            }
+            return ranges;
+        }
+
+        function closeWeeklyImageSelectModal() {
+            const win = document.getElementById('weeklyImageSelectModal');
+            if (win) win.remove();
+        }
+
+        function openWeeklyImageSelectModal() {
+            closeWeeklyImageSelectModal();
+
+            const ranges = getWeeklyRangesForImage(currentYear, currentMonth);
+            const weekKeys = Object.keys(ranges);
+            if (!weekKeys.length) {
+                showModal('오류', '저장할 주차 데이터를 찾을 수 없습니다.', true);
+                return;
+            }
+
+            const itemsHtml = weekKeys.map(k => {
+                const w = ranges[k];
+                return `
+                    <label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:8px;cursor:pointer;background:#f8fafc;">
+                        <input type="checkbox" class="weeklyImageCheck" value="${k}" checked style="width:18px;height:18px;accent-color:#4338ca;flex-shrink:0;">
+                        <span style="font-size:14px;font-weight:800;color:#1e293b;">${currentYear}년 ${currentMonth}월 ${w.title}</span>
+                        <span style="font-size:12px;color:#64748b;font-weight:600;">(${w.start}일~${w.end}일)</span>
+                    </label>`;
+            }).join('');
+
+            const win = document.createElement('div');
+            win.id = 'weeklyImageSelectModal';
+            win.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+            win.innerHTML = `
+                <div style="width:min(420px,100%);max-height:88vh;display:flex;flex-direction:column;background:#fff;border-radius:16px;box-shadow:0 15px 40px rgba(0,0,0,.25);overflow:hidden;">
+                    <div style="padding:16px 18px;background:#eef2ff;border-bottom:1px solid #c7d2fe;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+                        <strong style="font-size:17px;color:#3730a3;">주별 이미지 저장</strong>
+                        <button type="button" id="weeklyImageSelectClose" style="border:0;background:transparent;font-size:24px;line-height:1;color:#64748b;cursor:pointer;">×</button>
+                    </div>
+                    <div style="padding:18px;overflow-y:auto;flex:1;">
+                        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;">이미지로 저장할 주차를 선택하세요.<br>선택한 주차별로 이미지가 각각 저장됩니다.</div>
+                        <button type="button" id="weeklyImageSelectAllBtn" style="margin-bottom:10px;font-size:12px;font-weight:700;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:6px 10px;cursor:pointer;">전체선택 / 해제</button>
+                        <div>${itemsHtml}</div>
+                    </div>
+                    <div style="padding:14px 18px 18px;display:flex;gap:10px;flex-shrink:0;border-top:1px solid #f1f5f9;">
+                        <button type="button" id="weeklyImageSelectCancel" style="flex:1;padding:12px;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:10px;font-weight:700;cursor:pointer;">취소</button>
+                        <button type="button" id="weeklyImageSelectSave" style="flex:1;padding:12px;border:0;background:#4338ca;color:#fff;border-radius:10px;font-weight:700;cursor:pointer;">이미지저장</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(win);
+
+            document.getElementById('weeklyImageSelectClose').onclick = closeWeeklyImageSelectModal;
+            document.getElementById('weeklyImageSelectCancel').onclick = closeWeeklyImageSelectModal;
+            win.addEventListener('click', (e) => { if (e.target === win) closeWeeklyImageSelectModal(); });
+
+            let allChecked = true;
+            document.getElementById('weeklyImageSelectAllBtn').onclick = () => {
+                allChecked = !allChecked;
+                win.querySelectorAll('.weeklyImageCheck').forEach(cb => { cb.checked = allChecked; });
+            };
+
+            document.getElementById('weeklyImageSelectSave').onclick = async () => {
+                const checked = Array.from(win.querySelectorAll('.weeklyImageCheck:checked')).map(cb => Number(cb.value));
+                if (!checked.length) {
+                    showModal('알림', '저장할 주차를 1개 이상 선택하세요.', true);
+                    return;
+                }
+                closeWeeklyImageSelectModal();
+                await exportWeeklyImagesByWeeks(checked, ranges);
+            };
+        }
+
+        async function buildWeekImageBlob(weekEl, weekInfo) {
+            let captureWrap = null;
+            try {
+                const sourceTable = weekEl.querySelector('table');
+                const targetWidth = Math.ceil(Math.max(
+                    sourceTable ? (sourceTable.scrollWidth || sourceTable.offsetWidth || 0) : 0,
+                    weekEl.scrollWidth || 0,
+                    weekEl.offsetWidth || 0,
+                    760
+                ));
+
+                const capture = weekEl.cloneNode(true);
+                capture.style.width = targetWidth + 'px';
+                capture.style.maxWidth = 'none';
+                capture.style.margin = '0';
+                capture.style.boxSizing = 'border-box';
+                capture.style.display = 'block';
+                // 카드 모서리의 overflow-hidden이 표의 마지막 줄(휴무자)을 잘라내는 것을 방지합니다.
+                capture.style.overflow = 'visible';
+                capture.style.height = 'auto';
+                capture.style.maxHeight = 'none';
+                // 표 아래쪽이 잘리지 않도록 여유 공간을 살짝 추가합니다.
+                capture.style.paddingBottom = '10px';
+
+                capture.querySelectorAll('.overflow-x-auto, .overflow-auto').forEach(el => {
+                    el.style.overflow = 'visible';
+                    el.style.width = '100%';
+                    el.style.maxWidth = 'none';
+                    el.style.maxHeight = 'none';
+                });
+                capture.querySelectorAll('table').forEach(t => {
+                    t.style.width = '100%';
+                    t.style.minWidth = Math.max(1, targetWidth - 4) + 'px';
+                    t.style.height = 'auto';
+                });
+                capture.querySelectorAll('thead, tbody, tr, th, td').forEach(el => {
+                    el.style.maxHeight = 'none';
+                    el.style.height = 'auto';
+                });
+                // sticky 포지션은 html2canvas가 정확히 렌더링하지 못해
+                // 표 하단이 잘리거나 겹치는 원인이 되므로 캡처본에서는 해제합니다.
+                capture.querySelectorAll('.sticky').forEach(el => {
+                    el.style.position = 'static';
+                    el.style.left = 'auto';
+                    el.style.zIndex = 'auto';
+                    el.style.boxShadow = 'none';
+                });
+
+                applyImageCommonDecorations(capture);
+
+                captureWrap = document.createElement('div');
+                captureWrap.setAttribute('data-image-capture', 'true');
+                captureWrap.style.position = 'absolute';
+                captureWrap.style.left = '0';
+                captureWrap.style.top = '0';
+                captureWrap.style.width = targetWidth + 'px';
+                captureWrap.style.background = '#ffffff';
+                captureWrap.style.overflow = 'visible';
+                captureWrap.style.zIndex = '-1';
+                captureWrap.style.pointerEvents = 'none';
+                captureWrap.appendChild(capture);
+                document.body.appendChild(captureWrap);
+
+                await new Promise(resolve => requestAnimationFrame(() =>
+                    requestAnimationFrame(resolve)
+                ));
+
+                const rect = capture.getBoundingClientRect();
+                // 소수점 반올림으로 마지막 줄이 잘리지 않도록 여유분(6px)을 더합니다.
+                const captureWidth = Math.ceil(Math.max(
+                    1, rect.width, capture.scrollWidth || 0, capture.offsetWidth || 0
+                ));
+                const captureHeight = Math.ceil(Math.max(
+                    1, rect.height, capture.scrollHeight || 0, capture.offsetHeight || 0
+                )) + 6;
+
+                const maxCanvasSide = 8192;
+                const maxCanvasArea = 26800000;
+                const mobileWidth = Math.max(
+                    320, document.documentElement.clientWidth || window.innerWidth || 390
+                );
+                const fitScale = Math.min(1, mobileWidth / Math.max(1, captureWidth));
+                const renderScale = fitScale * 6;
+                let safeScale = Math.min(
+                    renderScale,
+                    maxCanvasSide / captureWidth,
+                    maxCanvasSide / captureHeight,
+                    Math.sqrt(maxCanvasArea / (captureWidth * captureHeight))
+                );
+                safeScale = Math.max(0.5, safeScale);
+
+                const canvas = await html2canvas(capture, {
+                    width: captureWidth,
+                    height: captureHeight,
+                    windowWidth: captureWidth,
+                    windowHeight: captureHeight,
+                    scale: safeScale,
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    imageTimeout: 15000,
+                    removeContainer: true
+                });
+
+                if (!canvas || !canvas.width || !canvas.height) {
+                    throw new Error('캔버스 생성에 실패했습니다.');
+                }
+
+                const saveBlob = (type, quality) => new Promise((resolve, reject) => {
+                    canvas.toBlob(blob => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('이미지 변환 실패'));
+                    }, type, quality);
+                });
+
+                let blob, ext;
+                try {
+                    blob = await saveBlob('image/png');
+                    ext = 'png';
+                } catch (pngErr) {
+                    blob = await saveBlob('image/jpeg', 0.98);
+                    ext = 'jpg';
+                }
+
+                const fileName = `이미지_월간배차현황_주별통합_${currentMonth}월_${weekInfo.title}.${ext}`;
+                return { blob, fileName };
+            } finally {
+                if (captureWrap && captureWrap.parentNode) {
+                    captureWrap.parentNode.removeChild(captureWrap);
+                }
+            }
+        }
+
+        async function exportWeeklyImagesByWeeks(weekNumbers, ranges) {
+            if (typeof html2canvas === 'undefined') {
+                showModal("오류", "이미지 저장 모듈(html2canvas)을 불러오지 못했습니다.", true);
+                return;
+            }
+            const weekBlocks = document.querySelectorAll('#allWeeklyTablesContainer > div');
+            if (!weekBlocks.length) {
+                showModal("오류", "주별통합 표를 찾을 수 없습니다.", true);
+                return;
+            }
+
+            const sorted = weekNumbers.slice().sort((a, b) => a - b);
+            const results = [];
+
+            for (const weekNum of sorted) {
+                const weekEl = weekBlocks[weekNum - 1];
+                const weekInfo = ranges[weekNum];
+                if (!weekEl || !weekInfo) continue;
+                try {
+                    const result = await buildWeekImageBlob(weekEl, weekInfo);
+                    results.push(result);
+                } catch (err) {
+                    console.error('주별 이미지 생성 오류:', err);
+                }
+            }
+
+            if (!results.length) {
+                showModal('오류', '이미지 저장에 실패했습니다.', true);
+                return;
+            }
+
+            // 파일 1개만 선택한 경우 → 이미지 파일 그대로 저장합니다.
+            if (results.length === 1) {
+                await downloadFile(results[0].blob, results[0].fileName);
+                return;
+            }
+
+            // 여러 주차를 선택한 경우 → 브라우저의 "다중 자동 다운로드 차단" 정책 때문에
+            // 하나씩 개별 다운로드하면 첫 번째 파일만 저장되고 나머지는 막힙니다.
+            // 그래서 zip 파일 하나로 묶어 한 번에 저장합니다.
+            if (typeof JSZip === 'undefined') {
+                showModal('오류', '여러 주차를 한 번에 저장하는 모듈(JSZip)을 불러오지 못했습니다. 주차를 1개씩 선택해 다시 시도해 주세요.', true);
+                return;
+            }
+
+            const zip = new JSZip();
+            results.forEach(r => zip.file(r.fileName, r.blob));
+            const zipBlob = await zip.generateAsync({ type: 'blob', mimeType: 'application/zip' });
+            const zipFileName = `이미지_월간배차현황_주별통합_${currentMonth}월_주별선택(${results.length}개).zip`;
+            await downloadFile(zipBlob, zipFileName);
         }
 
         async function exportToImage() {
