@@ -128,13 +128,50 @@
                 width: 100% !important;
             }
         }
+        /* ===== 전 탭 테이블 데이터 글자크기 = 월간배차현황(매트릭스) 기사명(text-xs = 0.75rem) ===== */
+        #view-daily table,
+        #view-daily table td,
+        #view-daily table th,
+        #view-daily table td span,
+        #view-daily table td div,
+        #view-weekly table,
+        #view-weekly table td,
+        #view-weekly table th,
+        #view-weekly table td span,
+        #view-weekly table td div,
+        #view-dailyList table,
+        #view-dailyList table td,
+        #view-dailyList table th,
+        #view-dailyList table td span,
+        #view-dailyList table td div,
+        #view-monthly table,
+        #view-monthly table td,
+        #view-monthly table th,
+        #view-monthly table td span,
+        #view-monthly table td div,
+        #view-monthlyOff table,
+        #view-monthlyOff table td,
+        #view-monthlyOff table th,
+        #view-monthlyOff table td span,
+        #view-monthlyOff table td div,
+        #view-drivers table,
+        #view-drivers table td,
+        #view-drivers table th,
+        #view-drivers table td span,
+        #view-drivers table td div,
+        #view-offdays table,
+        #view-offdays table td,
+        #view-offdays table th,
+        #view-offdays table td span,
+        #view-offdays table td div {
+            font-size: 0.75rem !important; /* text-xs = 매트릭스 기사명과 동일 */
+        }
         #view-weekly table td {
             vertical-align: middle !important;
             text-align: center !important;
             line-height: 1.25 !important;
             padding: 2px 0 !important;
             height: 32px !important;
-            font-size: 0.75rem !important; /* text-xs = 매트릭스와 동일 */
         }
         #view-weekly table td div {
             display: flex !important;
@@ -142,6 +179,12 @@
             justify-content: center !important;
             width: 100% !important;
             height: 100% !important;
+            font-size: 0.75rem !important;
+        }
+        #view-weekly .weekly-offday-name,
+        #view-weekly .weekly-offday-name .weekly-offday-inner,
+        #view-weekly .weekly-offday-name > div {
+            font-size: 0.75rem !important;
         }
         #view-monthlyOff table tr,
         #view-drivers table tr {
@@ -154,6 +197,12 @@
             height: 20px !important;
             padding: 0 2px !important;
             vertical-align: middle !important;
+            font-size: 0.75rem !important;
+        }
+        /* 월간 휴무대장 달력 휴무자 이름도 매트릭스와 동일 */
+        #view-offdays #calendarGrid > div > div:last-child,
+        #view-offdays #calendarGrid > div > div:last-child span {
+            font-size: 0.75rem !important;
         }
 
         /* 기사별 근무일수 그래프 - 정렬형 고급 디자인 */
@@ -221,7 +270,7 @@
     gap: 3px !important;
     width: 100% !important;
     color: #334155 !important;
-    font-size: 11px !important;
+    font-size: 0.75rem !important; /* 매트릭스 기사명과 동일 */
     line-height: 1.35 !important;
     overflow: visible !important;
     word-break: keep-all !important;
@@ -234,6 +283,7 @@
     overflow: visible !important;
     text-overflow: clip !important;
     overflow-wrap: anywhere !important;
+    font-size: 0.75rem !important; /* 매트릭스 기사명과 동일 */
 }
 #view-offdays #calendarGrid > div > div:first-child span:first-child {
     font-size: 12px !important;
@@ -263,7 +313,8 @@
 @media (max-width: 639px) {
     #view-offdays #calendarGrid { gap: 3px !important; padding: 4px !important; }
     #view-offdays #calendarGrid > div { min-height: 96px !important; padding: 6px 3px !important; border-radius: 8px !important; }
-    #view-offdays #calendarGrid > div > div:last-child { font-size: 9.5px !important; gap: 2px !important; }
+    #view-offdays #calendarGrid > div > div:last-child { font-size: 0.75rem !important; gap: 2px !important; }
+    #view-offdays #calendarGrid > div > div:last-child span { font-size: 0.75rem !important; }
     #view-offdays #calendarGrid > div > div:first-child span:first-child { font-size: 10.5px !important; }
     #view-offdays #calendarGrid > div > div:first-child span:last-child { font-size: 8px !important; padding: 1px 4px !important; }
 }
@@ -1211,8 +1262,8 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                     </div>
                 </div>
                 <div class="w-full overflow-x-auto rounded-xl border border-slate-200 shadow-xs">
-                    <table class="w-full text-[10px] sm:text-[11px] text-center text-slate-700 border-collapse table-auto">
-                        <thead class="text-[10px] text-slate-700 uppercase bg-slate-100 border-b border-slate-200" id="monthlyOffTableHeader"></thead>
+                    <table class="w-full text-xs text-center text-slate-700 border-collapse table-auto">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-100 border-b border-slate-200" id="monthlyOffTableHeader"></thead>
                         <tbody id="monthlyOffTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
                     </table>
                 </div>
@@ -1259,7 +1310,7 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
                         <span id="dailyShiftStatsTotal" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">0회</span>
                     </div>
                     <div class="w-full overflow-x-auto">
-                        <table class="w-full text-center border-collapse min-w-[1100px] text-[10px]">
+                        <table class="w-full text-center border-collapse min-w-[1100px] text-xs">
                             <thead id="dailyShiftStatsHeader"></thead>
                             <tbody id="dailyShiftStatsBody"></tbody>
                         </table>
