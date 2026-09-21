@@ -3,10 +3,10 @@
 <head>
 
    <!-- 애플 기기(아이폰/아이패드) 홈 화면 추가 시 적용되는 아이콘 -->
-   <link rel="apple-touch-icon" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6747.png">
+   <link rel="apple-touch-icon" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6636.png">
 
   <!-- 일반 브라우저 파비콘 (선택 사항) -->
-   <link rel="icon" type="image/png" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6747.png">
+   <link rel="icon" type="image/png" href="https://woojiwoong.github.io/BUS-system/daeho/IMG_6636.png">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -716,6 +716,78 @@ img { -webkit-user-drag:none !important; user-drag:none !important; }
   .monthly-off-day-table-wrap{margin:6px 10px 12px}
   .monthly-off-day-table thead th.monthly-off-day-th-date{font-size:15px}
   .monthly-off-day-table .off-day-date-cell{font-size:15px}
+}
+</style>
+
+<style id="premium-luxe-redesign">
+/* ============================================================
+   프리미엄 리디자인 — 탭 헤더 & 테이블 (글꼴은 기존 Noto Sans KR 유지)
+   ============================================================ */
+
+/* ---------- 메인 탭 네비게이션 ---------- */
+#mainTabNav {
+    background: linear-gradient(180deg,#ffffff 0%,#f6f7fa 100%) !important;
+    border-bottom: 1px solid #e5decb !important;
+    box-shadow: 0 3px 14px rgba(15,23,42,.07), inset 0 -2px 0 0 rgba(201,169,78,.42) !important;
+}
+.tab-btn {
+    position: relative !important;
+    border: 1px solid transparent !important;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease !important;
+}
+.tab-btn:hover {
+    background: linear-gradient(180deg,#f8fafc,#eef2f7) !important;
+    color: #1e3a5f !important;
+    box-shadow: 0 3px 10px rgba(15,23,42,.08) !important;
+    transform: translateY(-1px);
+}
+/* 활성 탭: 짙은 네이비 그라데이션 + 골드 테두리 (JS가 부여하는 bg-brand-50 클래스를 감지) */
+.tab-btn[class*="bg-brand-50"] {
+    background: linear-gradient(155deg,#1e3a5f 0%,#204783 55%,#2758a0 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid #c9a94e !important;
+    box-shadow: 0 6px 16px rgba(30,58,95,.32), inset 0 1px 0 rgba(255,255,255,.14) !important;
+    transform: translateY(-1px);
+}
+.tab-btn[class*="bg-brand-50"] svg {
+    color: #f3cc6b !important;
+    stroke: #f3cc6b !important;
+}
+
+/* ---------- 테이블 헤더 공통 프리미엄 스타일 (배경/경계선만 조정 — 폭에 민감한 매트릭스 열 영향 없음) ---------- */
+#exportableArea table thead,
+.monthly-off-list-table thead {
+    background: linear-gradient(180deg,#fcfcfd 0%,#eef1f6 100%) !important;
+    border-bottom: 2px solid #c9a94e !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+/* ---------- 본문 행: 은은한 줄무늬 & 호버 강조 (개별 셀의 의미색은 그대로 위에 표시됨) ---------- */
+#exportableArea table tbody tr:nth-child(even) {
+    background-color: rgba(30,58,95,.028);
+}
+#exportableArea table tbody tr:hover {
+    background-color: rgba(37,99,235,.055);
+}
+
+/* ---------- 표를 감싸는 카드형 프레임 강조 ---------- */
+main .overflow-x-auto.rounded-xl.border,
+main .overflow-x-auto.rounded-2xl.border {
+    border-color: #e5decb !important;
+    box-shadow: 0 6px 20px rgba(15,23,42,.06) !important;
+}
+
+/* ---------- 콘텐츠 카드 상단 골드 헤어라인 ---------- */
+#exportableArea { position: relative; }
+#exportableArea::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 14px; right: 14px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #c9a94e, transparent);
+}
+@media print {
+    #exportableArea::before { display: none !important; }
 }
 </style>
 
