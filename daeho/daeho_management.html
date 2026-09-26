@@ -1415,8 +1415,8 @@ main .overflow-x-auto.rounded-2xl.border {
                                 <tr>
                                     <th>노선</th>
                                     <th>차량</th>
-                                    <th>오전근무자</th>
-                                    <th>오후근무자</th>
+                                    <th>정규근무자1</th>
+                                    <th>정규근무자2</th>
                                 </tr>
                             </thead>
                             <tbody id="monthlyOffListBody"></tbody>
@@ -1964,7 +1964,7 @@ main .overflow-x-auto.rounded-2xl.border {
 
         function monthlyOffListOptions(names, selected=''){
             const sorted = [...new Set((names || []).filter(Boolean).map(String))].sort((a,b)=>b.localeCompare(a,'ko'));
-            const arr = [''].concat(sorted);
+            const arr = sorted.slice();  // 빈 칸 없음 — 이름만
             return arr.map(name => {
                 const safe = String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
                 const selectedAttr = (String(name) === String(selected)) ? ' selected' : '';
