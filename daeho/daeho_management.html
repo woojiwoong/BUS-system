@@ -4156,7 +4156,7 @@ function getMonthlyOffAllDriverNames(){
                             <select id="txtDeleteYear" style="flex:1;padding:11px 10px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;font-weight:700;background:#fff;">${yearOptions.join('')}</select>
                             <select id="txtDeleteMonth" style="flex:1;padding:11px 10px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;font-weight:700;background:#fff;">${monthOptions.join('')}</select>
                         </div>
-                        <div style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.5;">예: 2026년 9월 선택 → <b>2026-09-…_배차변경.txt</b> 형식의 TXT 파일만 삭제됩니다.</div>
+                        <div style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.5;">예: 2026년 9월 선택 → <b>2609…_배차변경.txt</b> 형식의 TXT 파일만 삭제됩니다.</div>
                     </div>
                     <div style="padding:0 18px 18px;display:flex;gap:10px;">
                         <button type="button" id="txtDeleteCancel" style="flex:1;padding:12px;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:10px;font-weight:700;cursor:pointer;">취소</button>
@@ -4177,8 +4177,8 @@ function getMonthlyOffAllDriverNames(){
         }
 
         // 현재 선택된 월의 "_배차변경.txt" TXT 파일만 삭제합니다.
-        // 예: 2026년 9월 선택 → 2026-09-…_배차변경.txt 만 삭제
-        // (구형식 기사_배차변경_2026-09-…txt 도 함께 삭제)
+        // 예: 2026년 9월 선택 → 2609…_배차변경.txt 만 삭제
+        // (구형식 기사_배차변경_2026-09-… / 2026-09-…_배차변경.txt 도 함께 삭제)
         // 안드로이드/PC 기준 폴더는 다운로드(Downloads) 폴더입니다.
         async function deleteSavedTxtFiles(selectedYear = currentYear, selectedMonth = currentMonth) {
             try {
@@ -4188,7 +4188,12 @@ function getMonthlyOffAllDriverNames(){
                 }
 
                 const mmStr = String(selectedMonth).padStart(2, '0');
-                const newMonthPrefix = `${selectedYear}-${mmStr}`;
+                const yyStr = String(selectedYear).slice(-2);
+                // 신형식: 260930_184500_배차변경.txt
+                const compactMonthPrefix = `${yyStr}${mmStr}`;
+                // 이전 신형식: 2026-09-30_18시25분00초_배차변경.txt
+                const dashMonthPrefix = `${selectedYear}-${mmStr}`;
+                // 구형식: 기사_배차변경_2026-09-...
                 const oldMonthPrefix = `기사_배차변경_${selectedYear}-${mmStr}`;
 
                 const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
@@ -4206,11 +4211,13 @@ function getMonthlyOffAllDriverNames(){
                     const name = entry.name;
                     const lower = name.toLowerCase();
                     if (!lower.endsWith('.txt')) continue;
-                    // 신형식: 2026-09-30_18시25분00초_배차변경.txt
+                    // 신형식: 260930_184500_배차변경.txt
+                    // 이전 신형식: 2026-09-30_18시25분00초_배차변경.txt
                     // 구형식: 기사_배차변경_2026-09-30_18시25분00초.txt
-                    const isNewFormat = lower.endsWith('_배차변경.txt') && name.startsWith(newMonthPrefix);
+                    const isCompact = lower.endsWith('_배차변경.txt') && name.startsWith(compactMonthPrefix);
+                    const isDashNew = lower.endsWith('_배차변경.txt') && name.startsWith(dashMonthPrefix);
                     const isOldFormat = name.startsWith(oldMonthPrefix);
-                    if (isNewFormat || isOldFormat) {
+                    if (isCompact || isDashNew || isOldFormat) {
                         await dirHandle.removeEntry(name);
                         count++;
                     }
@@ -4319,7 +4326,8 @@ function getMonthlyOffAllDriverNames(){
                 // 따라서 iPhone 공유 메뉴에서 별도의 text.txt가 만들어지는 현상을 방지합니다.
                 const now = new Date();
                 const pad2 = n => String(n).padStart(2, '0');
-                const timestamp = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}_${pad2(now.getHours())}시${pad2(now.getMinutes())}분${pad2(now.getSeconds())}초`;
+                // 파일명: YYMMDD_HHMMSS_배차변경.txt  (예: 260930_184500_배차변경.txt)
+                const timestamp = `${String(now.getFullYear()).slice(-2)}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}_${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
                 const fileName = `${timestamp}_배차변경.txt`;
 
                 // iPhone/iPad: 파일만 공유합니다. (원하는 폴더에 저장)
