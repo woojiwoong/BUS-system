@@ -4896,13 +4896,23 @@ function getMonthlyOffAllDriverNames(){
                         <div style="font-size:17px;font-weight:700;color:#16a34a;line-height:1.35;word-break:keep-all;">${esc(offText)}</div>
                     </div>`;
 
+                    // 일요일/공휴일 이미지에도 회(스피너) 열 포함
+                    const dateKeyImg = `${String(currentYear).substring(2)}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const isReducedImg = (typeof isReducedServiceDay === 'function')
+                        ? isReducedServiceDay(dateKeyImg, currentYear)
+                        : (isSun || holiday);
+                    const colW = isReducedImg
+                        ? { line: '22%', morning: '32%', spin: '14%', afternoon: '32%' }
+                        : { line: '26%', morning: '37%', spin: '0%', afternoon: '37%' };
+
                     html += `<div style="padding:8px 5px;flex:1;box-sizing:border-box;">
                         <table style="width:100%;border-collapse:collapse;table-layout:fixed;background:#ffffff;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;">
                             <thead>
                                 <tr>
-                                    <th style="width:26%;text-align:center;vertical-align:middle;font-size:19px;font-weight:900;color:#334155;padding:8px 1px;border:1px solid #cbd5e1;background:#f8fafc;">노선</th>
-                                    <th style="width:37%;text-align:center;vertical-align:middle;font-size:19px;font-weight:900;color:#b45309;padding:8px 1px;border:1px solid #cbd5e1;background:#fffbeb;">오전</th>
-                                    <th style="width:37%;text-align:center;vertical-align:middle;font-size:19px;font-weight:900;color:#c2410c;padding:8px 1px;border:1px solid #cbd5e1;background:#fef2f2;">오후</th>
+                                    <th style="width:${colW.line};text-align:center;vertical-align:middle;font-size:19px;font-weight:900;color:#334155;padding:8px 1px;border:1px solid #cbd5e1;background:#f8fafc;">노선</th>
+                                    <th style="width:${colW.morning};text-align:center;vertical-align:middle;font-size:19px;font-weight:900;color:#b45309;padding:8px 1px;border:1px solid #cbd5e1;background:#fffbeb;">오전</th>
+                                    ${isReducedImg ? `<th style="width:${colW.spin};text-align:center;vertical-align:middle;font-size:17px;font-weight:900;color:#be123c;padding:8px 1px;border:1px solid #cbd5e1;background:#fff1f2;">회</th>` : ''}
+                                    <th style="width:${colW.afternoon};text-align:center;vertical-align:middle;font-size:19px;font-weight:900;color:#c2410c;padding:8px 1px;border:1px solid #cbd5e1;background:#fef2f2;">오후</th>
                                 </tr>
                             </thead>
                             <tbody>`;
@@ -4918,9 +4928,22 @@ function getMonthlyOffAllDriverNames(){
                         const aColor = a === '운행종료' ? '#dc2626' : (aSpare ? '#2563eb' : '#0f172a');
                         const lineText = `${bus.line.replace('번','')}·${bus.busNo}`;
                         const cellBase = `height:${ROW_H}px;text-align:center;vertical-align:middle;padding:0 2px;border:1px solid #e2e8f0;background:#ffffff;white-space:nowrap;overflow:hidden;box-sizing:border-box;line-height:1;`;
+                        const bothEndedImg = m.includes('운행종료') && a.includes('운행종료');
+                        let spinCell = '';
+                        if (isReducedImg) {
+                            if (bothEndedImg) {
+                                spinCell = `<td style="${cellBase}font-size:16px;font-weight:800;color:#94a3b8;background:#fff1f2;">-</td>`;
+                            } else {
+                                const spinN = (typeof getMorningCellSpinner === 'function')
+                                    ? getMorningCellSpinner(dateKeyImg, bus.line, bus.busNo)
+                                    : 0;
+                                spinCell = `<td style="${cellBase}font-size:20px;font-weight:900;color:#be123c;background:#fff1f2;">${spinN}</td>`;
+                            }
+                        }
                         html += `<tr style="height:${ROW_H}px;">
                             <td style="${cellBase}font-size:${fitFont(lineText, _colPx.line, 23, 13)}px;font-weight:900;color:${lineColor};">${esc(lineText)}</td>
                             <td style="${cellBase}font-size:${fitFont(m, _colPx.shift, 26, 14)}px;font-weight:800;color:${mColor};">${esc(m)}</td>
+                            ${spinCell}
                             <td style="${cellBase}font-size:${fitFont(a, _colPx.shift, 26, 14)}px;font-weight:800;color:${aColor};">${esc(a)}</td>
                         </tr>`;
                     });
@@ -4934,6 +4957,7 @@ function getMonthlyOffAllDriverNames(){
                 const legend = document.createElement('div');
                 legend.innerHTML = `<div style="margin-top:14px;text-align:center;font-size:12px;font-weight:700;color:#475569;line-height:1.6;">
                     <span style="display:inline-block;margin:0 8px;">🟧 오전 · 🟥 오후</span>
+                    <span style="display:inline-block;margin:0 8px;color:#be123c;">회 = 일요일/공휴일 회차</span>
                     <span style="display:inline-block;margin:0 8px;color:#2563eb;">파란 글자 = 스페어 대체기사</span>
                     <span style="display:inline-block;margin:0 8px;color:#dc2626;">빨강 날짜 = 일요일/공휴일</span>
                 </div>`;
