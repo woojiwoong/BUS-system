@@ -4941,7 +4941,7 @@ function getMonthlyOffAllDriverNames(){
                             }
                         }
                         html += `<tr style="height:${ROW_H}px;">
-                            <td style="${cellBase}font-size:${fitFont(lineText, _colPx.line, 23, 13)}px;font-weight:900;color:${lineColor};">${esc(lineText)}</td>
+                            <td style="${cellBase}font-size:${fitFont(lineText, _colPx.line, 23, 13) + 4}px;font-weight:900;color:${lineColor};line-height:1.1;">${esc(bus.line.replace('번',''))}<br>${esc(bus.busNo)}</td>
                             <td style="${cellBase}font-size:${fitFont(m, _colPx.shift, 26, 14)}px;font-weight:800;color:${mColor};">${esc(m)}</td>
                             ${spinCell}
                             <td style="${cellBase}font-size:${fitFont(a, _colPx.shift, 26, 14)}px;font-weight:800;color:${aColor};">${esc(a)}</td>
