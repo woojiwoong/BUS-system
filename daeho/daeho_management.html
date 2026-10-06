@@ -2874,7 +2874,32 @@ function getMonthlyOffAllDriverNames(){
             if (!Number.isFinite(n)) n = 0;
             n = Math.max(0, Math.min(3, n));
             morningCellSpinners[morningSpinnerKey(dateKey, line, busNo)] = n;
+
+            // 주별통합 테이블 재렌더 시 가로/세로 스크롤이 처음으로 돌아가지 않도록 위치 보존
+            // (예: 10/9일 스피너 클릭 후 10/4일로 점프하지 않음)
+            const weeklyScrollState = Array.from(
+                document.querySelectorAll('#view-weekly .overflow-x-auto')
+            ).map(el => ({ scrollLeft: el.scrollLeft, scrollTop: el.scrollTop }));
+            const pageScrollX = window.scrollX || window.pageXOffset || 0;
+            const pageScrollY = window.scrollY || window.pageYOffset || 0;
+
             if (typeof renderAllWeeklyView === 'function') renderAllWeeklyView();
+
+            const restoreScroll = () => {
+                const weeklyScrollEls = document.querySelectorAll('#view-weekly .overflow-x-auto');
+                weeklyScrollState.forEach((state, index) => {
+                    const el = weeklyScrollEls[index];
+                    if (!el) return;
+                    el.scrollLeft = state.scrollLeft;
+                    el.scrollTop = state.scrollTop;
+                });
+                window.scrollTo(pageScrollX, pageScrollY);
+            };
+            // 레이아웃 완료 후 복원 (모바일에서 한 프레임만으로는 부족한 경우 대비)
+            requestAnimationFrame(() => {
+                restoreScroll();
+                requestAnimationFrame(restoreScroll);
+            });
         }
 
         function bumpMorningCellSpinner(dateKey, line, busNo, delta) {
@@ -3165,11 +3190,13 @@ function getMonthlyOffAllDriverNames(){
                 }
             }
 
-            // ★ 주별통합 탭에서 기사변경 후에도 사용자가 보고 있던 가로 스크롤 위치를 유지합니다.
+            // ★ 주별통합 탭에서 기사변경 후에도 사용자가 보고 있던 가로/세로 스크롤 위치를 유지합니다.
             // 예: 9/9일을 보고 기사변경 → 확인해도 9/6일로 되돌아가지 않고 9/9일 위치를 그대로 유지합니다.
             const weeklyScrollState = Array.from(
                 document.querySelectorAll('#view-weekly .overflow-x-auto')
             ).map(el => ({ scrollLeft: el.scrollLeft, scrollTop: el.scrollTop }));
+            const pageScrollX = window.scrollX || window.pageXOffset || 0;
+            const pageScrollY = window.scrollY || window.pageYOffset || 0;
 
             monthlySimulationCache = null;
             monthlySimulationCacheKey = '';
@@ -3177,7 +3204,7 @@ function getMonthlyOffAllDriverNames(){
             renderAllViews();
 
             // renderAllViews()로 주별통합 테이블이 다시 생성된 직후 기존 스크롤 위치 복원
-            requestAnimationFrame(() => {
+            const restoreScroll = () => {
                 const weeklyScrollEls = document.querySelectorAll('#view-weekly .overflow-x-auto');
                 weeklyScrollState.forEach((state, index) => {
                     const el = weeklyScrollEls[index];
@@ -3185,6 +3212,11 @@ function getMonthlyOffAllDriverNames(){
                     el.scrollLeft = state.scrollLeft;
                     el.scrollTop = state.scrollTop;
                 });
+                window.scrollTo(pageScrollX, pageScrollY);
+            };
+            requestAnimationFrame(() => {
+                restoreScroll();
+                requestAnimationFrame(restoreScroll);
             });
 
             showModal(
